@@ -1,0 +1,100 @@
+give me detailed specifications to build a document management system with following features
+- multitenant document management system
+- Documents can be categorized as separate categories or folders
+- within a tenant storage area users/groups should have fine grain permissions to a specific category/folder of documents
+- The access should be hierarchy based propagation
+
+user operations:
+- upload/delete operations on documents
+- users should be able to search documents (metadata driven search)
+- view documents
+
+audit:
+- the system should audit all the document operations including view with detailed metadata.
+
+Storage:
+- THe system should support multiple storage providers
+- Cloud native storage like Azure Blob, AWS S3 buckets, GCP Storage
+
+- User Bulk Operations
+- System should support bulk operations to upload documents
+- Bulk download documents
+
+
+
+Detailed specification for building a Multitenant Document Management System (DMS) with the features you've outlined. This is structured into key architectural components, feature modules, and implementation considerations
+
+1. Multitenancy Model
+Tenant Isolation: Each tenant has isolated data, metadata, and access controls.
+Shared Application Layer: Common codebase with tenant-specific configurations.
+Tenant Context: Every request carries tenant context (via headers, tokens, etc.).
+
+2. Document Categorization
+Folders/Categories: Hierarchical structure (e.g., Root → Department → Project).
+Metadata Tags: Custom tags for enhanced search and classification.
+
+3. Fine-Grained Access Control
+RBAC (Role-Based Access Control):
+Roles: Admin, Editor, Viewer, etc.
+Permissions: Upload, Delete, View, Search.
+ACLs (Access Control Lists):
+Applied at folder/category level.
+Supports user/group-based permissions.
+
+4. Hierarchical Permission Propagation
+Permissions cascade from parent to child folders unless overridden.
+Inheritance model with override capability.
+
+5. Pluggable Storage Providers
+Abstraction Layer for storage operations.
+Supported Providers:
+Azure Blob Storage
+AWS S3
+Google Cloud Storage
+Storage Adapter Interface:
+
+6. Document Operations
+Upload/Delete: Single and bulk operations.
+View: Inline preview or download.
+Search:
+Metadata-driven (filename, tags, uploader, date, etc.)
+Full-text search (optional via indexing service like Elasticsearch)
+
+7. Bulk Operations
+Bulk Upload: ZIP file or batch API.
+Bulk Download: Select multiple files → generate ZIP → download.
+
+8. Audit Trail
+Events Logged:
+Upload, Delete, View, Search
+Metadata Captured:
+User ID, Timestamp, IP Address, Document ID, Action Type
+Storage:
+Centralized audit log database (e.g., PostgreSQL, MongoDB)
+Optional integration with SIEM tools
+
+9. Search Capabilities
+Metadata Indexing: Document name, tags, uploader, etc.
+Search Engine: Elasticsearch or OpenSearch
+Faceted Search: Filter by category, date, uploader, etc.
+
+
+Plan
+
+Technology Stack 
+- Repository : Mono repo with pnpm as the package manager
+- Backend : Node.js, nestjs with fastify, prisma as ORM
+- Frontend : NextJs, Shadcn (headless components), Tailwind, Chartjs, Themes (Dark and Light Themes)
+- Database : PostgreSQL 
+- Storage : Azure Blob / AWS S3 / GCP Storage
+- Auth	OAuth2 / OpenID Connect (support passport js), Custom JWT token (support for SSO) 
+- Permission: user OpenFGA for relationship based authorization model
+- Audit	PostgreSQL / ELK Stack
+- Deployment: Kubernetes / Docker
+- API Gateway: Tyk 
+
+Security & Compliance
+- Encryption: At rest and in transit.
+- Authentication: JWT-based, with tenant context.
+- Authorization: Role and ACL-based.
+- Compliance: GDPR, HIPAA (if applicable).
