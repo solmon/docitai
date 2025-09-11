@@ -1,105 +1,3 @@
-````markdown
-# Implementation Plan: Multitenant Document Management System (DMS)
-
-**Branch**: `001-multitenant-document-management` | **Date**: 2025-09-11 | **Spec**: ./spec.md
-**Input**: Feature specification from `/specs/001-multitenant-document-management/spec.md`
-
-## Execution Flow (/plan command scope)
-```
-1. Load feature spec from Input path
-   → If not found: ERROR "No feature spec at {path}"
-2. Fill Technical Context (scan for NEEDS CLARIFICATION)
-   → Detect Project Type from context (web=frontend+backend)
-   → Set Structure Decision based on project type
-3. Evaluate Constitution Check section below
-   → If violations exist: Document in Complexity Tracking
-   → If no justification possible: ERROR "Simplify approach first"
-   → Update Progress Tracking: Initial Constitution Check
-4. Execute Phase 0 → research.md
-   → If NEEDS CLARIFICATION remain: ERROR "Resolve unknowns"
-5. Execute Phase 1 → contracts, data-model.md, quickstart.md
-6. Re-evaluate Constitution Check section
-   → If new violations: Refactor design, return to Phase 1
-   → Update Progress Tracking: Post-Design Constitution Check
-7. Plan Phase 2 → Describe task generation approach (DO NOT create tasks.md)
-8. STOP - Ready for /tasks command
-```
-
-## Summary
-Primary requirement: Provide a secure, tenant-isolated document management service with hierarchical folders, metadata-driven and optional full-text search, pluggable storage providers, fine-grained RBAC/ACLs, bulk operations, and a centralized audit trail.
-
-Technical approach (high level): Use a single monorepo Node.js backend (NestJS + Fastify) with Prisma for PostgreSQL, Next.js frontend; storage adapters per-tenant for Azure/AWS/GCS; OpenFGA for authorization; Elasticsearch/OpenSearch as optional indexing; audit events stored in PostgreSQL (and optionally forwarded to ELK).
-
-## Technical Context
-**Language/Version**: Node.js 18+ (LTS recommended)
-**Primary Dependencies**: NestJS (Fastify adapter), Prisma (PostgreSQL), OpenFGA client, passport.js (for OIDC/OAuth), Azure/AWS/GCS SDKs, Elasticsearch client (optional), pnpm for package management
-**Storage**: PostgreSQL primary metadata + audit; Object storage: Azure Blob / AWS S3 / GCS (tenant-configurable)
-**Testing**: Jest for unit/ integration, Pact or supertest for contract tests (contract test stubs included)
-**Target Platform**: Linux servers, containers (Docker) orchestrated by Kubernetes
-**Project Type**: Web application (frontend + backend)
-**Performance Goals**: [NEEDS CLARIFICATION: target req/s, indexing throughput, latency SLAs]
-**Constraints**: Encryption in transit and at rest required; multi-tenant isolation; TDD-first development enforced by constitution
-**Scale/Scope**: Tenant-count and aggregate data volumes [NEEDS CLARIFICATION]
-
-## Constitution Check
-**Simplicity**:
-- Projects: 2 (backend, frontend) — within max 3
-- Use framework directly: Yes (NestJS with minimal framework wrappers)
-- Single data model per service; avoid unnecessary DTO duplication unless required by API shape
-
-**Architecture**:
-- Feature implemented as backend library modules (services, auth, storage adapters) and frontend components
-- Libraries: auth (OIDC/JWT), storage-adapters, search-integration, audit, permissions
-
-**Testing (NON-NEGOTIABLE)**:
-- TDD enforced: write failing contract tests and integration tests before implementation
-- Integration tests use a real PostgreSQL instance (CI) or testcontainers locally
-
-**Observability**:
-- Structured JSON logging, metrics (Prometheus), traces (optional)
-
-**Versioning**:
-- Follow MAJOR.MINOR.BUILD; builds incremented via CI
-
-## Project Structure Decision
-- Option: Use split layout (backend/ + frontend/) because stack includes Next.js frontend and NestJS backend.
-
-## Phase 0: Outline & Research (research.md)
-- Extracted unknowns from spec: preferred search engine (ES vs OpenSearch), auth provider details and SSO flows, audit retention policy, file size limits and chunking strategy, performance SLAs, compliance scope (GDPR/HIPAA applicability).
-- See `research.md` for consolidated findings and chosen defaults to proceed with Phase 1.
-
-## Phase 1: Design & Contracts (data-model.md, /contracts/, quickstart.md)
-- Data model created for Tenant, User, Role, Group, Document, Folder, Tag, Permission, AuditEvent, StorageObject.
-- Minimal OpenAPI contract created for document operations (upload, download, list, search, permissions).
-
-## Phase 2: Task Planning Approach
-- Tasks will be generated from contracts and data model following TDD ordering; tasks described in template will be created by /tasks command.
-
-## Complexity Tracking
-- No constitution violations that can't be justified. Using split backend/frontend is justified by clear frontend requirements.
-
-## Progress Tracking
-**Phase Status**:
-- [x] Phase 0: Research complete (/plan command)
-- [x] Phase 1: Design complete (/plan command)
-- [ ] Phase 2: Task planning described (this file)
-- [ ] Phase 3: Tasks generated (/tasks command)
-- [ ] Phase 4: Implementation complete
-- [ ] Phase 5: Validation passed
-
-**Gate Status**:
-- [x] Initial Constitution Check: PASS
-- [ ] Post-Design Constitution Check: PENDING
-- [x] All NEEDS CLARIFICATION resolved in research.md or noted where deferred
-- [ ] Complexity deviations documented (none at this time)
-
----
-
-*Artifacts generated:* `research.md`, `data-model.md`, `quickstart.md`, `contracts/openapi.yaml`
-
-*Ready to run `/tasks` to generate tasks.md and proceed with TDD task creation.*
-
-````
 # Implementation Plan: [FEATURE]
 
 **Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
@@ -134,15 +32,16 @@ Technical approach (high level): Use a single monorepo Node.js backend (NestJS +
 [Extract from feature spec: primary requirement + technical approach from research]
 
 ## Technical Context
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: Node.js 18+ (LTS recommended)
+**Primary Dependencies**: NestJS (Fastify adapter), Prisma (PostgreSQL), OpenFGA client, passport.js (for OIDC/OAuth), Azure/AWS/GCS SDKs, Elasticsearch/OpenSearch client (optional), pnpm for package management
+**Frontend UI**: Next.js, Shadcn components, Tailwind, Radix UI (headless primitives), Chart.js, theme support (dark/light)
+**Storage**: PostgreSQL for metadata + audit; object storage per-tenant (Azure Blob/AWS S3/GCS)
+**Testing**: Jest for unit/integration, supertest for API contract tests, testcontainers/Docker for integration DBs
+**Target Platform**: Linux servers, Docker containers, Kubernetes
+**Project Type**: Web application (frontend + backend)
+**Performance Goals**: [NEEDS CLARIFICATION: requests/sec, p95 latency, indexing throughput]
+**Constraints**: Encryption in transit and at rest required; tenant isolation required; TDD-first enforced by constitution
+**Scale/Scope**: [NEEDS CLARIFICATION: tenant counts, expected storage volumes]
 
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*

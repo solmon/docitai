@@ -15,6 +15,8 @@ Format: `[ID] [P?] Description` (paths relative to repo root)
 - T001 Initialize repo layout for feature (backend/, frontend/, backend/prisma/) and create `backend/` and `frontend/` packages (monorepo). Path: `backend/`, `frontend/`.
 - T002 Initialize backend package and install core deps: `backend/package.json` (NestJS + Fastify, Prisma, OpenFGA client, passport.js, storage SDKs). Path: `backend/package.json`.
 - T003 Configure linting, formatting, CI skeleton, and repo scripts (ESLint, Prettier, pnpm workspace). Files: `.eslintrc`, `.prettierrc`, `.github/workflows/ci.yml`.
+ - T003 Configure linting, formatting, CI skeleton, and repo scripts (ESLint, Prettier, pnpm workspace). Files: `.eslintrc`, `.prettierrc`, `.github/workflows/ci.yml`.
+ - T004 [P] Frontend setup: initialize `frontend/` Next.js app, install Tailwind, Radix UI, shadcn components, Chart.js, and create base theme scaffolding (`frontend/package.json`, `frontend/tailwind.config.js`, `frontend/src/components/ui/*`).
 
 ---
 
