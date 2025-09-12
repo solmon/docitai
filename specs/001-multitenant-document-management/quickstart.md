@@ -80,3 +80,32 @@ pnpm --filter backend start:dev
 cd frontend
 pnpm dev
 ```
+
+Docker quickstart (local dev):
+
+1. Start local infra
+
+```bash
+docker compose -f infra/docker-compose.dms.yml up -d
+```
+
+2. Set DATABASE_URL e.g.:
+
+```bash
+export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/docitai_dev"
+```
+
+3. From `backend/` run:
+
+```bash
+pnpm --filter backend prisma:generate
+pnpm --filter backend prisma:migrate
+```
+
+4. Run contract tests (from repo root)
+
+```bash
+pnpm test:contract
+```
+
+Note: contract tests are intended to fail until the backend implementation is available at `http://localhost:3000`.

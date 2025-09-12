@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  tenant_id String  @id @default(uuid())
+  name      String
+  config    Json?
+  createdAt DateTime @default(now())
+  users     User[]
+  folders   Folder[]
+  documents Document[]
+}
+
+model User {
+  user_id    String @id @default(uuid())
+  tenant     Tenant @relation(fields: [tenantId], references: [tenant_id])
+  tenantId   String
+  email      String
+  displayName String?
+  roles      Json?
+  lastActive DateTime?
+}
+
+model Folder {
+  folder_id String @id @default(uuid())
+  tenant    Tenant @relation(fields: [tenantId], references: [tenant_id])
+  tenantId  String
+  parentId  String?
+  name      String
+  path      String?
+  acl       Json?
+  createdAt DateTime @default(now())
+  documents Document[]
+}
+
+model Document {
+  document_id String @id @default(uuid())
+  tenant      Tenant @relation(fields: [tenantId], references: [tenant_id])
+  tenantId    String
+  folder       Folder? @relation(fields: [folderId], references: [folder_id])
+  folderId     String?
+  name         String
+  version      Int    @default(1)
+  storageProvider String
+  storageContainer String
+  objectKey    String
+  size         Int
+  uploaderId   String
+  tags         Json?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+}
+
+model AuditEvent {
+  event_id   String @id @default(uuid())
+  tenantId   String
+  userId     String
+  action     String
+  documentId String?
+  ipAddress  String?
+  timestamp  DateTime @default(now())
+  context    Json?
+}
+
+model StorageObject {
+  id              String @id @default(uuid())
+  provider        String
+  container       String
+  object_key      String
+  encryption_meta Json?
+}
