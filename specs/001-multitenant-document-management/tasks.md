@@ -1,3 +1,33 @@
+# Tasks: Multitenant Document Management System — Executable Task List
+
+Feature: Multitenant Document Management System (DMS)
+Feature dir: /home/solmon/github/docitai/specs/001-multitenant-document-management
+
+Guiding rules applied:
+- Use contract-first approach (see `/contracts/openapi.yaml`).
+- Tests-before-implementation for contracts and critical integration scenarios (contract tests are parallelizable where safe).
+- Entities from `data-model.md` become model creation tasks.
+- Tasks include file paths and minimal commands or expected outputs so an LLM or developer can execute them.
+
+Task format: [ID] Title — short description
+- Path: file(s) to change or create
+- Command / Notes: exact action, expected artifacts, and dependency notes
+
+T001 — Setup: Create local dev infra definitions (Postgres + OpenSearch)
+- Path: infra/docker-compose.dms.yml
+- Command / Notes: Create a docker-compose file that starts Postgres and OpenSearch for local dev. Ensure ports: Postgres 5432, OpenSearch 9200. This file will be used by quickstart.
+
+T002 — Setup: Add backend package skeleton (monorepo) [P]
+- Path: backend/package.json, backend/.gitignore, backend/src/main.ts
+- Command / Notes: Initialize `backend` package with a minimal `package.json` including scripts: `start:dev`, `prisma:migrate`, `prisma:generate`. Use NestJS + Fastify deps in the manifest (list as placeholders). This is preparatory scaffolding; no implementation logic required yet.
+
+T003 — Setup: Add Prisma schema file and initial migration (models placeholders) [P]
+- Path: backend/prisma/schema.prisma, backend/prisma/migrations/README (placeholder)
+- Command / Notes: Create Prisma schema with `Tenant`, `User`, `Folder`, `Document`, `AuditEvent`, `StorageObject` models reflecting `data-model.md`. This task must produce a file `backend/prisma/schema.prisma` that an implementation task will later refine. No DB run required now.
+
+T004 — Contract Tests: Add contract test for `POST /tenants` [P]
+- Path: tests/contract/tenants.create.test.js
+- Command / Notes: Create a test that issues POST /tenants with body `{
 # Tasks: Multitenant Document Management System (DMS)
 
 **Input**: Design documents from `/specs/001-multitenant-document-management/`

@@ -1,3 +1,27 @@
+# Quickstart: Multitenant DMS (Developer)
+
+This quickstart demonstrates the basic developer flow to run contract checks and a minimal upload/download smoke test.
+
+Prerequisites:
+- Node.js 20+, pnpm
+- PostgreSQL running and accessible via DATABASE_URL
+- OpenSearch running for search index (optional for smoke test)
+
+Steps:
+1. Install dependencies
+
+2. Generate Prisma client and run migrations (from repo root)
+
+3. Run contract validation against `contracts/openapi.yaml`
+
+4. Run a smoke script to perform:
+   - create tenant
+   - create user
+   - create folder
+   - upload small file
+   - confirm metadata saved and audit event created
+
+This quickstart is intentionally minimal; implementation repository will expand these steps into runnable scripts.
 # Quickstart — Multitenant DMS (Dev)
 
 Date: 2025-09-11

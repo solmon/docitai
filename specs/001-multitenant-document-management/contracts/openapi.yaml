@@ -1,0 +1,92 @@
+openapi: 3.0.3
+info:
+  title: Multitenant Document Management API
+  version: 0.1.0
+servers:
+  - url: https://api.example.com
+paths:
+  /tenants:
+    post:
+      summary: Create tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '201':
+          description: Created
+  /tenants/{tenantId}/folders:
+    post:
+      summary: Create folder
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                parentId:
+                  type: string
+      responses:
+        '201':
+          description: Created
+  /tenants/{tenantId}/documents:
+    post:
+      summary: Upload document
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                folderId:
+                  type: string
+      responses:
+        '201':
+          description: Uploaded
+  /tenants/{tenantId}/documents/{documentId}:
+    get:
+      summary: Download document
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
