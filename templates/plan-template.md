@@ -46,7 +46,7 @@
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
 **Simplicity**:
-- Projects: [#] (max 3 - e.g., api, cli, tests)
+- Projects: [#] (max 5 - e.g., api, cli, tests)
 - Using framework directly? (no wrapper classes)
 - Single data model? (no DTOs unless serialization differs)
 - Avoiding patterns? (no Repository/UoW without proven need)
@@ -90,39 +90,20 @@ specs/[###-feature]/
 
 ### Source Code (repository root)
 ```
-# Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
+# Option 1: Monorepo (DEFAULT)
+apps/
+├── app1/
+├── app2/
 ├── cli/
-└── lib/
 
-tests/
-├── contract/
-├── integration/
-└── unit/
+libs/
+├── util/
+├── uicomponents/
 
-# Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
+infra/
+├── helm/
+├── local/
 
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure]
 ```
 
 **Structure Decision**: [DEFAULT to Option 1 unless Technical Context indicates web/mobile app]
