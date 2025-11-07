@@ -1,0 +1,47 @@
+[project]
+name = "docitai"
+version = "0.0.0"
+description = "Monorepo for document management applications"
+authors = [{ name = "solmon", email = "solmon@gmail.com" }]
+readme = "README.md"
+
+requires-python = ">=3.12.4"
+dependencies = [
+    "fastapi>=0.115.12",
+    "uvicorn>=0.34.0",
+]
+
+[dependency-groups]
+dev = [
+    "bandit>=1.8.0",
+    "commitizen>=4.1.0",
+    "commitlint>=1.3.0",
+    "mypy>=1.14.0",
+    "poethepoet>=0.32.0",
+    "pre-commit>=4.0.1",
+    "pydantic>=2.10.4", # required by pydantic.mypy plugin
+    "pylint>=3.3.3",
+    "pytest>=8.3.4",
+    "ruff>=0.8.4",
+]
+
+[tool.setuptools.packages.find]
+where = ["libs", "apps"]
+
+[tool.uv]
+package = false
+allow-insecure-host = ["localhost", "pypi.org", "pypi.python.org", "files.pythonhosted.org", "github.com"]
+
+[tool.uv.workspace]
+members = ["libs/*", "apps/*"]
+
+[tool.poe.tasks]
+# Run lint tools - ruff, bandit, mypy and pylint
+lint = [
+    { cmd = "ruff check --fix" },
+    { cmd = "bandit -r . --exclude ./.venv,./scripts" },
+    { cmd = "pylint . --ignore-paths ./.venv" },
+    { cmd = "mypy ." },
+]
+# Organize imports with Ruff and format the code
+format = [{ cmd = "ruff check --select I --fix" }, { cmd = "ruff format" }]

@@ -1,0 +1,100 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0  # Use the latest stable version
+    hooks:
+      - id: check-merge-conflict
+        name: Check that merge conflicts are not being committed
+      - id: check-added-large-files
+        args: ["--maxkb=500"]  # Checks for files larger than the specified size
+        name: Check for large files
+      - id: check-case-conflict
+        name: Check for filename case conflicts
+      - id: check-executables-have-shebangs
+        name: Check that executables have shebang
+      - id: detect-private-key
+        name: Detect if private key is added to the repository
+      - id: debug-statements
+        name: Detect accidentally committed debug statements
+      - id: end-of-file-fixer
+        name: Make sure that there is an empty line at the end
+        files: \.py$
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+        name: Detect if mixed line ending is used (\r vs. \r\n)
+      - id: trailing-whitespace
+        name: Remove trailing whitespace at end of line
+      - id: check-builtin-literals
+        name: Require literal syntax when initializing builtin types
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    # uv version.
+    rev: 0.5.13
+    hooks:
+      - id: uv-lock
+
+  # - repo: https://github.com/charliermarsh/ruff
+  #   rev: v0.6.3  # Check for the latest version
+  #   hooks:
+  #   -   id: ruff
+  #       args: [--fix]
+
+  # - repo: https://github.com/pylint-dev/pylint
+  #   rev: v3.2.7  # Use the latest release version
+  #   hooks:
+  #     - id: pylint
+  #       args: [--disable=R,C]  # Customize arguments as needed
+
+  - repo: local
+    hooks:
+      - id: ruff
+        name: Run 'ruff' for extremely fast Python linting
+        description: "Run 'ruff' for extremely fast Python linting"
+        entry: ruff check --force-exclude
+        language: python
+        types_or: [python, pyi]
+        args: [--fix]
+        require_serial: true
+        additional_dependencies: ["ruff==0.6.3"]
+
+      - id: ruff-format
+        name: Run 'ruff format' for extremely fast Python formatting
+        description: "Run 'ruff format' for extremely fast Python formatting"
+        entry: ./scripts/git/ruff_format.py
+        language: python
+        types_or: [python, pyi]
+        args: []
+        require_serial: true
+        additional_dependencies: ["ruff==0.6.3"]
+
+      - id: bandit
+        name: bandit
+        description: "Bandit is a tool for finding common security issues in Python code"
+        entry: bandit
+        language: python
+        language_version: python3
+        types: [ python ]
+        additional_dependencies: ['bandit==1.7.9']
+        require_serial: true
+        files: ^(apps|libs)/.*
+        args:
+          - "--skip"
+          - "B101,B301,B324,B403,B404,B603"
+          - "--severity-level"
+          - "high"  # TODO: remove this line when we fix all the issues
+
+      - id: pylint
+        name: pylint
+        description: "Pylint is a static code analyser for Python 2 or 3."
+        entry: pylint
+        language: python
+        language_version: python3
+        types: [ python ]
+        additional_dependencies: ['pylint==3.2.6']
+        require_serial: true
+        files: ^(apps|libs)/.*
+        args:
+          # Use pylint only for the specific check, which are not available into the ruff
+          - "--disable=all"
+          # W0133: "Exception statement has no effect"
+          # see: https://github.com/astral-sh/ruff/issues/10145
+          - "--enable=W0133"

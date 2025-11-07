@@ -1,0 +1,22 @@
+{
+  "folders": [
+    {
+      "name": "💡 docitai",
+      "path": "."
+    },
+    {
+      "name": "🚀 doc-storage-api",
+      "path": "apps/doc-storage-api"
+    },
+    {
+      "name": "📦 common-fastapi",
+      "path": "libs/common-fastapi"
+    },
+  ],
+  "settings": {
+    "files.exclude": {
+      "apps/**": true,
+      "libs/**": true
+    }
+  }
+}

@@ -206,7 +206,7 @@ infra/
 - [ ] Phase 2: Task planning complete (/plan command - describe approach only)
 - [ ] Phase 3: Tasks generated (/tasks command)
 - [ ] Phase 4: Implementation complete
-- [ ] Phase 5: Validation passed
+<!-- - [ ] Phase 5: Validation passed -->
 
 **Gate Status**:
 - [ ] Initial Constitution Check: PASS

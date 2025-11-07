@@ -1,0 +1,185 @@
+openapi: 3.0.3
+info:
+  title: Tenant Management Service API
+  version: "0.1.0"
+  description: API contract for tenant lifecycle, storage configuration, user management and retention policies.
+servers:
+  - url: https://api.example.com
+
+paths:
+  /tenants:
+    post:
+      summary: Create a new tenant (onboard District)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                external_identifier:
+                  type: string
+                storage_config:
+                  type: object
+                  properties:
+                    storage_type:
+                      type: string
+                    location_identifier:
+                      type: string
+                    provision:
+                      type: boolean
+              required: [name]
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+
+  /tenants:
+    get:
+      summary: List tenants (Super Admin)
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TenantSummary'
+
+  /tenants/{tenantId}:
+    get:
+      summary: Get tenant details
+      parameters:
+        - in: path
+          name: tenantId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+
+  /tenants/{tenantId}/storage:
+    patch:
+      summary: Update tenant storage configuration
+      parameters:
+        - in: path
+          name: tenantId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                storage_type:
+                  type: string
+                location_identifier:
+                  type: string
+                provision:
+                  type: boolean
+      responses:
+        '200':
+          description: Updated
+
+  /tenants/{tenantId}/containers/{containerId}/retention:
+    post:
+      summary: Create or update retention policy for container
+      parameters:
+        - in: path
+          name: tenantId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: containerId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                duration_days:
+                  type: integer
+                action:
+                  type: string
+                  enum: [archive, delete, mark_expired]
+                legal_hold:
+                  type: boolean
+      responses:
+        '200':
+          description: Policy stored
+
+  /tenants/{tenantId}/users:
+    post:
+      summary: Create a user for tenant
+      parameters:
+        - in: path
+          name: tenantId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                role:
+                  type: string
+                  enum: [tenant_admin, user]
+      responses:
+        '201':
+          description: Created
+
+components:
+  schemas:
+    Tenant:
+      type: object
+      properties:
+        tenant_id:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+        storage_config:
+          type: object
+    TenantSummary:
+      type: object
+      properties:
+        tenant_id:
+          type: string
+        name:
+          type: string
+        storage_bytes:
+          type: integer
+        document_count:
+          type: integer
