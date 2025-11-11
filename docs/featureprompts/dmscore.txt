@@ -1,0 +1,32 @@
+Give a prompt for defining the specifications using speckit for the document management system 
+- It should have ability to organize documents at a tenant level.
+- It should have ability to organize documents in folders (within a tenant)
+- It should have ability to upload documents to a given tenant and to a specific folder within the tenant
+- The system should have metadata stored in database
+- The storage of the documents should be driven as configuration like Azure Blob\ AWS S3 etc..
+ 
+
+Define Speckit Specifications for a Multi-Tenant Document Management System
+Create a specification document using Speckit that outlines the design and implementation standards for a Document Management System (DMS) with the following capabilities and constraints:
+Core Functional Requirements:
+
+Tenant-Level Organization: Documents must be logically and securely organized per tenant, ensuring strict isolation and access control.
+Folder Structure Within Tenants: Each tenant should be able to create and manage folders to organize documents hierarchically.
+Document Upload Workflow:
+
+Upload documents to a specific tenant.
+Assign documents to a designated folder within that tenant.
+Support bulk uploads and metadata tagging.
+
+
+Metadata Management:
+
+Store document metadata (e.g., name, type, size, upload date, folder path, tenant ID) in a relational database.
+Ensure metadata is queryable and supports auditability.
+
+
+Configurable Storage Backend:
+
+Document storage should be abstracted and configurable.
+Support for cloud storage providers like Azure Blob Storage, AWS S3, and others.
+Storage configuration should be tenant-aware and support future extensibility.
