@@ -1,0 +1,59 @@
+Give a prompt for defining the specifications using speckit for tenant management services for a "document management system"
+- A service for managing tenants
+- Admin should be able to onboard a new tenant
+- Admin should be able to configure tenant storage settings
+- Admin should be able to configure various and organize folders for structuring information  
+- The storage of the documents should be driven as configuration like Azure Blob\ AWS S3 etc..
+- Admin should be able to configure folder level data retention and compliance policies
+- Admin should be able to define various master data for tenant like document categories
+
+Title: Tenant Management Service for Document Management System
+Description:
+Define the specifications for a service that manages tenants within a Document Management System. The service should allow administrators to onboard tenants, configure storage, organize folders, and enforce compliance policies.
+
+Functional Requirements
+
+
+-Tenant Onboarding
+--Admin should be able to create and onboard a new tenant.
+--Capture tenant details such as name, ID, contact information, and subscription plan.
+
+-Storage Configuration
+--Admin should configure tenant-specific storage settings.
+--Support multiple storage providers (e.g., Azure Blob, AWS S3, Google Cloud Storage).
+--Storage configuration should be dynamic and driven by tenant-level settings.
+
+-Folder Structure Management
+--Admin should create and organize folders for structuring tenant documents.
+--Ability to define hierarchical folder structures.
+--Support folder-level metadata for categorization.
+
+-Data Retention & Compliance
+--Admin should configure folder-level data retention policies.
+--Define compliance rules (e.g., GDPR, HIPAA) at folder or tenant level.
+--Automatic enforcement of retention and compliance policies.
+
+-Master Data Management
+--Admin should define master data for the tenant:
+---Document categories
+---Document types
+---Custom attributes for classification
+
+-Non-Functional Requirements
+--Security: Role-based access control for tenant admins and users.
+--Scalability: Support multi-tenant architecture with isolation.
+--Performance: Fast retrieval and storage operations.
+--Compliance: Ensure adherence to data protection regulations.
+
+-Integration Points
+--External storage services (Azure Blob, AWS S3).
+--Authentication and authorization service.
+--Compliance monitoring tools.
+
+-Configuration Parameters
+Tenant ID
+Storage provider type
+Folder hierarchy definition
+Retention policy duration
+Compliance policy mappings
+Document category master data

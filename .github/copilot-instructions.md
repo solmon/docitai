@@ -52,3 +52,10 @@ After making edits
 If you want me to iterate on these instructions, tell me which sections need more or fewer details and whether to include command snippets for local testing.
 
 End of instructions
+
+## Active Technologies
+- Python 3.11+ + FastAPI, SQLModel, Pydantic, Alembic (migrations), PyJWT (auth) (001-tenant-management)
+- PostgreSQL (primary), SQL Server (alternative) - multi-database support via SQLModel (001-tenant-management)
+
+## Recent Changes
+- 001-tenant-management: Added Python 3.11+ + FastAPI, SQLModel, Pydantic, Alembic (migrations), PyJWT (auth)

@@ -1,0 +1,1105 @@
+openapi: 3.0.3
+info:
+  title: Tenant Management Service API
+  description: |
+    RESTful API for multi-tenant document management system administration.
+    Enables tenant onboarding, storage configuration, folder organization, 
+    and compliance policy management with strict tenant isolation and RBAC.
+  version: 1.0.0
+  contact:
+    name: Docitai Platform Team
+    email: platform@docitai.com
+
+servers:
+  - url: https://api.docitai.com/tenant-management/v1
+    description: Production server
+  - url: https://staging-api.docitai.com/tenant-management/v1
+    description: Staging server
+  - url: http://localhost:8000/tenant-management/v1
+    description: Local development server
+
+security:
+  - bearerAuth: []
+
+paths:
+  # Tenant Management Endpoints
+  /tenants:
+    get:
+      summary: List tenants
+      description: Retrieve paginated list of tenants (system admin only)
+      operationId: listTenants
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/TenantStatus'
+      responses:
+        '200':
+          description: List of tenants
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantListResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Create new tenant
+      description: Onboard a new tenant (system admin only)
+      operationId: createTenant
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantCreateRequest'
+      responses:
+        '201':
+          description: Tenant created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /tenants/{tenantId}:
+    get:
+      summary: Get tenant details
+      description: Retrieve specific tenant information
+      operationId: getTenant
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Tenant details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    put:
+      summary: Update tenant
+      description: Update tenant information (system admin or tenant admin)
+      operationId: updateTenant
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantUpdateRequest'
+      responses:
+        '200':
+          description: Tenant updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Storage Configuration Endpoints
+  /tenants/{tenantId}/storage-config:
+    get:
+      summary: Get storage configuration
+      description: Retrieve tenant storage configuration
+      operationId: getStorageConfig
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Storage configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageConfigResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      summary: Create storage configuration
+      description: Configure storage provider for tenant
+      operationId: createStorageConfig
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StorageConfigCreateRequest'
+      responses:
+        '201':
+          description: Storage configuration created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageConfigResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    put:
+      summary: Update storage configuration
+      description: Update tenant storage configuration
+      operationId: updateStorageConfig
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StorageConfigUpdateRequest'
+      responses:
+        '200':
+          description: Storage configuration updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageConfigResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /tenants/{tenantId}/storage-config/validate:
+    post:
+      summary: Validate storage configuration
+      description: Test storage provider connection
+      operationId: validateStorageConfig
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Storage configuration validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Folder Management Endpoints
+  /tenants/{tenantId}/folders:
+    get:
+      summary: List folders
+      description: Retrieve tenant folder hierarchy
+      operationId: listFolders
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: parent_id
+          in: query
+          description: Filter by parent folder ID (null for root folders)
+          schema:
+            type: string
+            nullable: true
+        - name: recursive
+          in: query
+          description: Include all descendant folders
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: List of folders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FolderListResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      summary: Create folder
+      description: Create new folder in hierarchy
+      operationId: createFolder
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FolderCreateRequest'
+      responses:
+        '201':
+          description: Folder created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FolderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /tenants/{tenantId}/folders/{folderId}:
+    get:
+      summary: Get folder details
+      description: Retrieve specific folder information
+      operationId: getFolder
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/FolderId'
+      responses:
+        '200':
+          description: Folder details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FolderResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update folder
+      description: Update folder information and metadata
+      operationId: updateFolder
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/FolderId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FolderUpdateRequest'
+      responses:
+        '200':
+          description: Folder updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FolderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete folder
+      description: Delete folder and handle children based on policy
+      operationId: deleteFolder
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/FolderId'
+        - name: force
+          in: query
+          description: Force deletion even if folder contains children
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '204':
+          description: Folder deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Retention Policy Endpoints
+  /tenants/{tenantId}/retention-policies:
+    get:
+      summary: List retention policies
+      description: Retrieve tenant retention policies
+      operationId: listRetentionPolicies
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: scope_type
+          in: query
+          schema:
+            $ref: '#/components/schemas/PolicyScope'
+        - name: compliance_framework
+          in: query
+          schema:
+            $ref: '#/components/schemas/ComplianceFramework'
+      responses:
+        '200':
+          description: List of retention policies
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetentionPolicyListResponse'
+
+    post:
+      summary: Create retention policy
+      description: Create new retention policy
+      operationId: createRetentionPolicy
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetentionPolicyCreateRequest'
+      responses:
+        '201':
+          description: Retention policy created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetentionPolicyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /tenants/{tenantId}/retention-policies/{policyId}:
+    get:
+      summary: Get retention policy
+      description: Retrieve specific retention policy
+      operationId: getRetentionPolicy
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/PolicyId'
+      responses:
+        '200':
+          description: Retention policy details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetentionPolicyResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update retention policy
+      description: Update retention policy configuration
+      operationId: updateRetentionPolicy
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/PolicyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetentionPolicyUpdateRequest'
+      responses:
+        '200':
+          description: Retention policy updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetentionPolicyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Master Data Endpoints
+  /tenants/{tenantId}/document-categories:
+    get:
+      summary: List document categories
+      description: Retrieve tenant document categories
+      operationId: listDocumentCategories
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: parent_id
+          in: query
+          description: Filter by parent category ID
+          schema:
+            type: string
+            nullable: true
+      responses:
+        '200':
+          description: List of document categories
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentCategoryListResponse'
+
+    post:
+      summary: Create document category
+      description: Create new document category
+      operationId: createDocumentCategory
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentCategoryCreateRequest'
+      responses:
+        '201':
+          description: Document category created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentCategoryResponse'
+
+  /tenants/{tenantId}/document-types:
+    get:
+      summary: List document types
+      description: Retrieve tenant document types
+      operationId: listDocumentTypes
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: List of document types
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentTypeListResponse'
+
+    post:
+      summary: Create document type
+      description: Create new document type with custom attributes
+      operationId: createDocumentType
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentTypeCreateRequest'
+      responses:
+        '201':
+          description: Document type created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentTypeResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token with tenant and role claims
+
+  parameters:
+    TenantId:
+      name: tenantId
+      in: path
+      required: true
+      description: Unique tenant identifier
+      schema:
+        type: string
+        pattern: '^[a-zA-Z0-9_-]+$'
+
+    FolderId:
+      name: folderId
+      in: path
+      required: true
+      description: Unique folder identifier
+      schema:
+        type: string
+        pattern: '^[a-zA-Z0-9_-]+$'
+
+    PolicyId:
+      name: policyId
+      in: path
+      required: true
+      description: Unique retention policy identifier
+      schema:
+        type: string
+        pattern: '^[a-zA-Z0-9_-]+$'
+
+  schemas:
+    # Tenant Schemas
+    TenantResponse:
+      type: object
+      required: [tenant_id, name, contact_email, subscription_plan, status, created_at]
+      properties:
+        tenant_id:
+          type: string
+          example: "tenant_12345"
+        name:
+          type: string
+          example: "Acme Corporation"
+        contact_email:
+          type: string
+          format: email
+          example: "admin@acme.com"
+        contact_phone:
+          type: string
+          nullable: true
+          example: "+1-555-123-4567"
+        subscription_plan:
+          $ref: '#/components/schemas/SubscriptionPlan'
+        status:
+          $ref: '#/components/schemas/TenantStatus'
+        settings:
+          $ref: '#/components/schemas/TenantSettings'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    TenantCreateRequest:
+      type: object
+      required: [name, contact_email, subscription_plan]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          example: "Acme Corporation"
+        contact_email:
+          type: string
+          format: email
+          example: "admin@acme.com"
+        contact_phone:
+          type: string
+          nullable: true
+          example: "+1-555-123-4567"
+        subscription_plan:
+          $ref: '#/components/schemas/SubscriptionPlan'
+        settings:
+          $ref: '#/components/schemas/TenantSettings'
+
+    TenantUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        contact_email:
+          type: string
+          format: email
+        contact_phone:
+          type: string
+          nullable: true
+        status:
+          $ref: '#/components/schemas/TenantStatus'
+        settings:
+          $ref: '#/components/schemas/TenantSettings'
+
+    TenantListResponse:
+      type: object
+      required: [tenants, pagination]
+      properties:
+        tenants:
+          type: array
+          items:
+            $ref: '#/components/schemas/TenantResponse'
+        pagination:
+          $ref: '#/components/schemas/PaginationInfo'
+
+    TenantSettings:
+      type: object
+      properties:
+        max_folders:
+          type: integer
+          minimum: 1
+          default: 100
+        max_storage_gb:
+          type: integer
+          minimum: 1
+          default: 10
+        enable_compliance_audit:
+          type: boolean
+          default: true
+        default_retention_days:
+          type: integer
+          minimum: 30
+          default: 2555
+
+    SubscriptionPlan:
+      type: string
+      enum: [basic, professional, enterprise]
+
+    TenantStatus:
+      type: string
+      enum: [active, suspended, pending_activation, deactivated]
+
+    # Storage Configuration Schemas
+    StorageConfigResponse:
+      type: object
+      required: [config_id, tenant_id, provider_type, provider_region, is_active, created_at]
+      properties:
+        config_id:
+          type: string
+        tenant_id:
+          type: string
+        provider_type:
+          $ref: '#/components/schemas/StorageProviderType'
+        provider_region:
+          type: string
+          example: "us-east-1"
+        connection_config:
+          $ref: '#/components/schemas/ConnectionConfigPublic'
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        last_validated:
+          type: string
+          format: date-time
+          nullable: true
+
+    StorageConfigCreateRequest:
+      type: object
+      required: [provider_type, provider_region, connection_config]
+      properties:
+        provider_type:
+          $ref: '#/components/schemas/StorageProviderType'
+        provider_region:
+          type: string
+        connection_config:
+          $ref: '#/components/schemas/ConnectionConfigCreate'
+
+    StorageConfigUpdateRequest:
+      type: object
+      properties:
+        provider_region:
+          type: string
+        connection_config:
+          $ref: '#/components/schemas/ConnectionConfigCreate'
+        is_active:
+          type: boolean
+
+    StorageProviderType:
+      type: string
+      enum: [azure_blob, aws_s3, gcs]
+
+    ConnectionConfigCreate:
+      type: object
+      required: [endpoint_url, access_key, secret_key, bucket_name]
+      properties:
+        endpoint_url:
+          type: string
+          format: uri
+        access_key:
+          type: string
+        secret_key:
+          type: string
+          format: password
+        bucket_name:
+          type: string
+        additional_config:
+          type: object
+
+    ConnectionConfigPublic:
+      type: object
+      properties:
+        endpoint_url:
+          type: string
+          format: uri
+        bucket_name:
+          type: string
+        additional_config:
+          type: object
+      description: "Public view of connection config (credentials omitted)"
+
+    ValidationResponse:
+      type: object
+      required: [is_valid, tested_at]
+      properties:
+        is_valid:
+          type: boolean
+        error_message:
+          type: string
+          nullable: true
+        tested_at:
+          type: string
+          format: date-time
+
+    # Folder Schemas
+    FolderResponse:
+      type: object
+      required: [folder_id, tenant_id, name, path, level, created_at]
+      properties:
+        folder_id:
+          type: string
+        tenant_id:
+          type: string
+        name:
+          type: string
+        parent_folder_id:
+          type: string
+          nullable: true
+        path:
+          type: string
+          example: "/documents/contracts/2024"
+        level:
+          type: integer
+          minimum: 0
+        description:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    FolderCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        parent_folder_id:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+
+    FolderUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        parent_folder_id:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+
+    FolderListResponse:
+      type: object
+      required: [folders]
+      properties:
+        folders:
+          type: array
+          items:
+            $ref: '#/components/schemas/FolderResponse'
+
+    # Retention Policy Schemas
+    RetentionPolicyResponse:
+      type: object
+      required: [policy_id, tenant_id, scope_type, name, retention_period_days, compliance_framework, retention_action, is_active, created_at]
+      properties:
+        policy_id:
+          type: string
+        tenant_id:
+          type: string
+        scope_type:
+          $ref: '#/components/schemas/PolicyScope'
+        scope_id:
+          type: string
+          nullable: true
+        name:
+          type: string
+        retention_period_days:
+          type: integer
+        compliance_framework:
+          $ref: '#/components/schemas/ComplianceFramework'
+        retention_action:
+          $ref: '#/components/schemas/RetentionAction'
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        effective_date:
+          type: string
+          format: date-time
+
+    RetentionPolicyCreateRequest:
+      type: object
+      required: [scope_type, name, retention_period_days, compliance_framework, retention_action]
+      properties:
+        scope_type:
+          $ref: '#/components/schemas/PolicyScope'
+        scope_id:
+          type: string
+          nullable: true
+        name:
+          type: string
+          maxLength: 255
+        retention_period_days:
+          type: integer
+          minimum: 30
+        compliance_framework:
+          $ref: '#/components/schemas/ComplianceFramework'
+        retention_action:
+          $ref: '#/components/schemas/RetentionAction'
+        effective_date:
+          type: string
+          format: date-time
+          nullable: true
+
+    RetentionPolicyUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        retention_period_days:
+          type: integer
+          minimum: 30
+        compliance_framework:
+          $ref: '#/components/schemas/ComplianceFramework'
+        retention_action:
+          $ref: '#/components/schemas/RetentionAction'
+        is_active:
+          type: boolean
+        effective_date:
+          type: string
+          format: date-time
+
+    RetentionPolicyListResponse:
+      type: object
+      required: [policies]
+      properties:
+        policies:
+          type: array
+          items:
+            $ref: '#/components/schemas/RetentionPolicyResponse'
+
+    PolicyScope:
+      type: string
+      enum: [tenant, folder]
+
+    ComplianceFramework:
+      type: string
+      enum: [gdpr, hipaa, sox, custom]
+
+    RetentionAction:
+      type: string
+      enum: [delete, archive, notify_only]
+
+    # Master Data Schemas
+    DocumentCategoryResponse:
+      type: object
+      required: [category_id, tenant_id, name, is_active, created_at]
+      properties:
+        category_id:
+          type: string
+        tenant_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        parent_category_id:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    DocumentCategoryCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        parent_category_id:
+          type: string
+          nullable: true
+
+    DocumentCategoryListResponse:
+      type: object
+      required: [categories]
+      properties:
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentCategoryResponse'
+
+    DocumentTypeResponse:
+      type: object
+      required: [type_id, tenant_id, name, is_active, created_at]
+      properties:
+        type_id:
+          type: string
+        tenant_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        custom_attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomAttribute'
+        validation_rules:
+          type: object
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    DocumentTypeCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        custom_attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomAttribute'
+        validation_rules:
+          type: object
+
+    DocumentTypeListResponse:
+      type: object
+      required: [document_types]
+      properties:
+        document_types:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentTypeResponse'
+
+    CustomAttribute:
+      type: object
+      required: [name, attribute_type]
+      properties:
+        name:
+          type: string
+        attribute_type:
+          $ref: '#/components/schemas/AttributeType'
+        is_required:
+          type: boolean
+          default: false
+        default_value:
+          nullable: true
+        validation_pattern:
+          type: string
+          nullable: true
+
+    AttributeType:
+      type: string
+      enum: [text, number, date, boolean, select]
+
+    # Common Schemas
+    PaginationInfo:
+      type: object
+      required: [page, limit, total_count, total_pages]
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total_count:
+          type: integer
+          minimum: 0
+        total_pages:
+          type: integer
+          minimum: 0
+
+    ErrorResponse:
+      type: object
+      required: [error, message, timestamp]
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters or body
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Conflict:
+      description: Resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+tags:
+  - name: Tenants
+    description: Tenant onboarding and management operations
+  - name: Storage Configuration
+    description: Cloud storage provider configuration
+  - name: Folders
+    description: Hierarchical folder structure management
+  - name: Retention Policies
+    description: Data retention and compliance policy management
+  - name: Master Data
+    description: Document categories and type definitions

@@ -1,0 +1,99 @@
+Give a prompt for defining the plan using speckit for tenant management services for a "document management system"
+- The restful apis to be build using frameworks FASTAPI, SQLModel, Pydantic
+- API first with OpenAPI specs
+- Use repository pattern
+- dependency injection
+- Domain Driven Design
+- async 
+- SQL Server as the target database, should also support Postgres
+- This should follow microservice pattern
+
+
+Title: Plan for Tenant Management Service Microservice (Document Management System)
+Description:
+Define the implementation plan for building a Tenant Management Service as a microservice that supports multi-tenancy, storage configuration, folder organization, and compliance policies. The service should expose RESTful APIs and follow modern architectural principles.
+
+Objectives
+
+Build RESTful APIs using FastAPI, SQLModel, and Pydantic.
+Follow API-first approach with OpenAPI specifications.
+Implement Domain-Driven Design (DDD).
+Use Repository Pattern and Dependency Injection.
+Ensure async support for scalability.
+Support SQL Server as the primary database and PostgreSQL as an alternative.
+Deploy as a microservice with containerization and orchestration.
+
+
+-Architecture
+
+--Microservice Pattern
+Independent deployment and scaling.
+Clear API boundaries and versioning.
+
+--Domain Layers
+
+Domain Layer: Entities, Value Objects, Aggregates.
+Application Layer: Services, Use Cases.
+Infrastructure Layer: Database, external storage integrations.
+
+-Repository Pattern
+
+Abstract persistence logic from domain logic.
+
+--Dependency Injection
+
+Inject repositories, services, and configurations.
+
+-Technology Stack
+
+FastAPI: RESTful API framework.
+SQLModel: ORM for SQL Server/Postgres.
+Pydantic: Data validation and schema generation.
+OpenAPI: API-first design and documentation.
+Async: Asynchronous endpoints and DB operations.
+Databases: SQL Server (primary), PostgreSQL (secondary).
+
+Core Components
+
+
+API Layer
+
+Define endpoints for:
+
+Tenant onboarding.
+Storage configuration (Azure Blob, AWS S3).
+Folder structure management.
+Compliance and retention policy setup.
+Master data management.
+
+Generate OpenAPI specs automatically.
+
+Domain Layer
+
+Entities: Tenant, StorageConfig, Folder, CompliancePolicy, DocumentCategory.
+Aggregates and Value Objects per DDD principles.
+
+Repository Layer
+
+Interfaces for persistence.
+Implementations using SQLModel for SQL Server/Postgres.
+
+Service Layer
+
+Business logic for onboarding, configuration, and policy enforcement.
+Inject repositories and external services.
+
+
+Cross-Cutting Concerns
+
+Security: JWT authentication, RBAC.
+Logging & Monitoring: Structured logs, metrics.
+Configuration: Environment-driven (12-factor app).
+Testing: Unit tests for domain logic, integration tests for APIs.
+
+
+Deployment
+
+Containerized using Docker.
+Orchestrated via Kubernetes.
+CI/CD pipeline for automated builds and deployments.
