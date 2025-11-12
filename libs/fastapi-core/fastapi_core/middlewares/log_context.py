@@ -5,7 +5,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-from common_fastapi.config import add_to_log_context, clear_log_context
+from fastapi_core.config import add_to_log_context, clear_log_context
 
 
 class LogContextMiddleware(BaseHTTPMiddleware):

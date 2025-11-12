@@ -5,9 +5,9 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-from common_fastapi._build_info import BUILD_TIME
-from common_fastapi._version import __version__
-from common_fastapi.config import get_logger
+from fastapi_core._build_info import BUILD_TIME
+from fastapi_core._version import __version__
+from fastapi_core.config import get_logger
 
 
 logger = get_logger(__name__)

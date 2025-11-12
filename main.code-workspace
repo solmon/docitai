@@ -5,13 +5,25 @@
       "path": "."
     },
     {
-      "name": "🚀 doc-storage-api",
-      "path": "apps/doc-storage-api"
+      "name": "🚀 tenant-service",
+      "path": "apps/tenant-service"
     },
     {
-      "name": "📦 common-fastapi",
-      "path": "libs/common-fastapi"
+      "name": "📦 tenant-auth",
+      "path": "libs/tenant-auth"
     },
+    {
+      "name": "📦 database-core",
+      "path": "libs/database-core"
+    },
+    {
+      "name": "📦 storage-adapter",
+      "path": "libs/storage-adapter"
+    },
+    {
+      "name": "📦 compliance-engine",
+      "path": "libs/compliance-engine"
+    }
   ],
   "settings": {
     "files.exclude": {

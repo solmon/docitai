@@ -1,0 +1,14 @@
+[project]
+name = "compliance-engine"
+version = "0.1.0"
+description = "Retention policy enforcement, compliance scheduling, and audit trail management for document lifecycle"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.5.0",
+    "sqlmodel>=0.0.14",
+    "apscheduler>=3.10.0",
+]
+
+[tool.uv]
+workspaces = ["../.."]

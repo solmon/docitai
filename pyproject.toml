@@ -35,6 +35,14 @@ allow-insecure-host = ["localhost", "pypi.org", "pypi.python.org", "files.python
 [tool.uv.workspace]
 members = ["libs/*", "apps/*"]
 
+[tool.uv.sources]
+fastapi-core = { workspace = true }
+database-core = { workspace = true }
+storage-adapter = { workspace = true }
+tenant-auth = { workspace = true }
+compliance-engine = { workspace = true }
+tenant-service = { workspace = true }
+
 [tool.poe.tasks]
 # Run lint tools - ruff, bandit, mypy and pylint
 lint = [
@@ -45,3 +53,6 @@ lint = [
 ]
 # Organize imports with Ruff and format the code
 format = [{ cmd = "ruff check --select I --fix" }, { cmd = "ruff format" }]
+
+# Run tenant-service application with all workspace dependencies
+run_ts = { cmd = "uv run python -m uvicorn tenant_service.main:app --reload --port 8000 --app-dir apps/tenant-service/src" }

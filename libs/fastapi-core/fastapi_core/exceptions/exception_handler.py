@@ -8,7 +8,7 @@ from fastapi.responses import ORJSONResponse
 from sqlalchemy.exc import DBAPIError, IntegrityError, ProgrammingError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from common_fastapi.config import APP_ENV, AppEnv, get_logger
+from fastapi_core.config import APP_ENV, AppEnv, get_logger
 
 from .error_code import ErrorCode
 

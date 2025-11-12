@@ -1,0 +1,15 @@
+[project]
+name = "tenant-auth"
+version = "0.1.0"
+description = "JWT-based authentication and RBAC middleware for multi-tenant applications"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.104.0",
+    "pydantic>=2.5.0",
+    "pyjwt>=2.8.0",
+    "cryptography>=41.0.0",
+]
+
+[tool.uv]
+workspaces = ["../.."]

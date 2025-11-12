@@ -12,8 +12,8 @@ class CustomBuildHook(BuildHookInterface):
         self.current_dir = os.getcwd()
 
         # Paths to the `_build_info.py` and `_version.py` files
-        self.build_info_path: str = os.path.join(self.current_dir, "common_fastapi", "_build_info.py")
-        self.version_file_path: str = os.path.join(self.current_dir, "common_fastapi", "_version.py")
+        self.build_info_path: str = os.path.join(self.current_dir, "fastapi_core", "_build_info.py")
+        self.version_file_path: str = os.path.join(self.current_dir, "fastapi_core", "_version.py")
 
         # Initial contents for the files
         self.initial_build_info_content: str = """\

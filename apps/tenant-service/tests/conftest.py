@@ -1,0 +1,31 @@
+"""Pytest configuration and fixtures for tenant service tests."""
+
+import pytest
+from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel.pool import StaticPool
+
+
+@pytest.fixture(name="engine")
+def engine_fixture():
+    """Create a test database engine."""
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+    yield engine
+    engine.dispose()
+
+
+@pytest.fixture(name="session")
+def session_fixture(engine):
+    """Create a test database session."""
+    with Session(engine) as session:
+        yield session
+
+
+@pytest.fixture(scope="session")
+def anyio_backend():
+    """Configure anyio for async tests."""
+    return "asyncio"
