@@ -1,76 +1,56 @@
-# Implementation Plan: Tenant Management Service for Document Management System
+````markdown
+# Implementation Plan: Tenant Management Service
 
-**Branch**: `001-tenant-management` | **Date**: November 12, 2025 | **Spec**: [spec.md](./spec.md)
+**Branch**: `001-tenant-management` | **Date**: 2025-11-12 | **Spec**: [./spec.md](./spec.md)
 **Input**: Feature specification from `/specs/001-tenant-management/spec.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
 ## Summary
 
-The Tenant Management Service is a microservice that provides multi-tenant administration capabilities for a Document Management System. It enables system administrators to onboard tenants, configure cloud-agnostic storage providers (Azure Blob, AWS S3, Google Cloud Storage), organize hierarchical folder structures, and enforce compliance policies (GDPR, HIPAA). The service follows API-first design principles using FastAPI, implements Domain-Driven Design (DDD) patterns, and ensures strict tenant isolation while supporting role-based access control (RBAC) for secure multi-tenant operations.
+Primary requirement: Build a microservice for tenant management in a document management system, supporting multi-tenancy, storage configuration, folder organization, and compliance policies. The service will expose RESTful APIs following DDD principles with FastAPI, SQLModel, and Pydantic, supporting both SQL Server and PostgreSQL databases. Technical approach emphasizes reusable libraries, async operations, and strict tenant isolation following the established monorepo architecture with fastapi-core library integration.
 
 ## Technical Context
 
-**Language/Version**: Python 3.11+  
+**Language/Version**: Python 3.12+ (aligned with workspace requirements)  
 **Primary Dependencies**: FastAPI, SQLModel, Pydantic, Alembic (migrations), PyJWT (auth)  
 **Storage**: PostgreSQL (primary), SQL Server (alternative) - multi-database support via SQLModel  
-**Testing**: pytest, pytest-asyncio, httpx (async test client), factory-boy (test data)  
-**Target Platform**: Linux containers (Docker), Kubernetes orchestration  
-**Project Type**: Web API microservice with async support  
-**Performance Goals**: 1000+ concurrent requests, <200ms p95 latency for CRUD operations  
-**Constraints**: Cloud-agnostic deployment, strict tenant isolation, RBAC enforcement at API boundary  
-**Scale/Scope**: 1000+ tenants, hierarchical folder structures (10 levels deep), compliance audit trails
+**Testing**: pytest with async support, contract testing, integration tests  
+**Target Platform**: Linux containers, Kubernetes deployments, cloud-agnostic  
+**Project Type**: Microservice with library-first architecture  
+**Performance Goals**: 1000+ concurrent requests/second, <200ms p95 latency  
+**Constraints**: <200ms p95 response time, strict tenant isolation, RBAC enforcement  
+**Scale/Scope**: 1000+ tenants simultaneously, hierarchical folder structures up to 10 levels
 
-**Cloud Storage Integrations**: [NEEDS CLARIFICATION: abstraction layer design for Azure Blob, AWS S3, Google Cloud Storage]  
-**Authentication Strategy**: [NEEDS CLARIFICATION: JWT validation approach - internal service or external identity provider]  
-**RBAC Implementation**: [NEEDS CLARIFICATION: role definitions and permission mapping for tenant administrators vs system administrators]  
-**Multi-Database Strategy**: [NEEDS CLARIFICATION: connection pooling and tenant-aware database routing approach]
+**Architecture Decisions**:
+- **Monorepo Integration**: Use existing uv workspace with individual project dependencies
+- **Library Strategy**: Leverage fastapi-core for common FastAPI abstractions, create reusable libraries for cross-cutting concerns (auth, storage, compliance)
+- **Database Support**: SQLModel provides abstraction for both PostgreSQL and SQL Server
+- **Async Operations**: Full async/await pattern for database and external API calls
+- **Dependency Management**: Project-specific dependencies in individual pyproject.toml, shared dependencies in workspace root
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-### I. Library-First (NON-NEGOTIABLE)
-- [x] **GATE**: Design must identify reusable libraries (tenant management, storage abstraction, RBAC enforcement)
-- [x] **GATE**: Business logic must be packaged as libraries before service implementation
-- [x] **STATUS**: ✅ RESOLVED - Three core libraries defined with clear boundaries
+✅ **Library-First**: Design emphasizes reusable libraries (storage abstraction, compliance engine, auth middleware) before service implementation  
+✅ **Cloud Agnostic**: SQLModel provides database abstraction, storage configurations support multiple providers via adapter pattern  
+✅ **Observability**: FastAPI-core provides structured logging, metrics, and tracing foundations; tenant-aware logging required  
+✅ **Security by Design**: RBAC enforcement at API boundaries, tenant isolation in data model, encrypted credentials storage  
+✅ **Role-Based Access Control**: Tenant-scoped permissions, inheritance from tenant to folder level, audit trail for all administrative actions  
+✅ **Multi-Tenant Architecture**: All entities include tenant_id, cross-tenant access prevention, tenant-aware observability and configuration
 
-### II. Cloud Agnostic (NON-NEGOTIABLE)
-- [x] **GATE**: Storage provider integrations must use abstraction layer, not direct SDK calls
-- [x] **GATE**: Deployment configuration must be provider-agnostic
-- [x] **STATUS**: ✅ RESOLVED - Provider pattern with unified interface designed
+**Pre-Phase 0 Status**: ✅ APPROVED - All constitution principles satisfied by design
 
-### III. Observability (NON-NEGOTIABLE)
-- [x] **GATE**: All operations must emit tenant-aware metrics and structured logs
-- [x] **GATE**: Distributed tracing must include tenant_id and request_id context
-- [x] **STATUS**: ✅ RESOLVED - FastAPI + structured logging + OpenTelemetry with tenant context
+**Post-Phase 1 Re-evaluation**:
+✅ **Library-First**: Four new libraries created (storage-adapter, tenant-auth, compliance-engine, database-core) with focused responsibilities  
+✅ **Cloud Agnostic**: Storage-adapter library implements provider pattern for AWS S3, Azure Blob, GCS with no runtime dependencies  
+✅ **Observability**: Integration with fastapi-core logging, tenant-aware structured logs, metrics collection via prometheus-client  
+✅ **Security by Design**: Encrypted storage credentials, JWT validation, RBAC middleware, audit trails in all operations  
+✅ **Role-Based Access Control**: Hierarchical roles (System Admin, Tenant Admin, Folder Manager) with permission inheritance  
+✅ **Multi-Tenant Architecture**: All data models include tenant_id, repository pattern enforces isolation, tenant-aware logging
 
-### IV. Security by Design
-- [x] **GATE**: Threat model must be documented for multi-tenant data access
-- [x] **GATE**: Data encryption at rest and in transit must be implemented
-- [x] **GATE**: Secrets management must use secure secret store (no secrets in code)
-- [x] **STATUS**: ✅ RESOLVED - 5 key threats identified with mitigations, encryption strategy defined
-
-### V. Role-Based Access Control (RBaC)
-- [x] **GATE**: API endpoints must enforce RBAC at boundary layer
-- [x] **GATE**: Role definitions and permissions must be explicitly documented
-- [x] **STATUS**: ✅ RESOLVED - Hierarchical role model with tenant-scoped permissions designed
-
-### VI. Multi-Tenant Architecture
-- [x] **GATE**: All data models must include tenant_id for isolation
-- [x] **GATE**: Cross-tenant data access must be prevented by design
-- [x] **GATE**: Monitoring and logs must be tenant-aware (tagged and filterable)
-- [x] **STATUS**: ✅ RESOLVED - Tenant isolation middleware and tenant-aware repositories designed
-
-**GATE RESULT**: ✅ PASSED - All constitution requirements resolved and validated in Phase 1 design
-
-**Phase 1 Validation**:
-- ✅ Libraries designed with clear boundaries and reusable interfaces
-- ✅ Cloud storage abstraction implemented with provider pattern
-- ✅ Multi-tenant data models include tenant_id isolation 
-- ✅ RBAC permission model documented with hierarchical roles
-- ✅ Security threat model addressed with encryption and audit strategies
-- ✅ Observability implemented with tenant-aware logging and metrics
+**Final Status**: ✅ APPROVED - Design maintains constitution compliance with library-first implementation
 
 ## Project Structure
 
@@ -89,51 +69,108 @@ specs/[###-feature]/
 ### Source Code (repository root)
 
 ```text
-# Microservice API structure following DDD and Library-First principles
-libs/
-├── tenant-management/           # Core business logic library
-│   ├── src/
-│   │   ├── domain/             # Domain entities, aggregates, value objects
-│   │   ├── application/        # Use cases, application services
-│   │   ├── infrastructure/     # Repository implementations
-│   │   └── __init__.py
-│   └── tests/
-├── storage-abstraction/         # Cloud-agnostic storage library  
-│   ├── src/
-│   │   ├── providers/          # Azure, AWS, GCS adapters
-│   │   ├── interfaces/         # Abstract storage contracts
-│   │   └── __init__.py
-│   └── tests/
-└── rbac-enforcement/           # Role-based access control library
-    ├── src/
-    │   ├── models/            # Role, permission models
-    │   ├── decorators/        # API authorization decorators
-    │   └── __init__.py
-    └── tests/
-
+# Microservice Application
 apps/
-└── tenant-management-api/      # FastAPI service composition
+└── tenant-service/
+    ├── pyproject.toml          # Project-specific dependencies only
     ├── src/
-    │   ├── api/               # FastAPI routers and endpoints
-    │   ├── config/            # Application configuration
-    │   ├── middleware/        # Request/response middleware
-    │   └── main.py           # FastAPI application entry
-    ├── tests/
-    │   ├── contract/          # OpenAPI contract validation
-    │   ├── integration/       # End-to-end API tests
-    │   └── unit/             # Service layer tests
-    ├── alembic/              # Database migrations
-    ├── Dockerfile
-    └── requirements.txt
+    │   └── tenant_service/
+    │       ├── main.py         # FastAPI app using fastapi-core
+    │       ├── api/            # REST endpoints
+    │       │   ├── v1/
+    │       │   │   ├── tenants.py
+    │       │   │   ├── storage.py
+    │       │   │   ├── folders.py
+    │       │   │   └── compliance.py
+    │       │   └── dependencies.py
+    │       ├── domain/         # DDD domain layer
+    │       │   ├── entities/
+    │       │   ├── value_objects/
+    │       │   ├── aggregates/
+    │       │   └── services/
+    │       ├── application/    # Use cases and app services
+    │       │   ├── commands/
+    │       │   ├── queries/
+    │       │   └── handlers/
+    │       └── infrastructure/ # Data access and external integrations
+    │           ├── repositories/
+    │           ├── models/     # SQLModel ORM models
+    │           └── adapters/
+    └── tests/
+        ├── contract/           # OpenAPI contract tests
+        ├── integration/        # Database and external API tests
+        └── unit/              # Domain and service unit tests
 
-infra/
-├── docker/                   # Container configurations
-├── k8s/                     # Kubernetes manifests
-└── terraform/               # Cloud-agnostic infrastructure
+# Reusable Libraries (leveraging existing fastapi-core)
+libs/
+├── fastapi-core/              # Existing - FastAPI abstractions
+├── storage-adapter/           # NEW - Multi-provider storage abstraction
+│   ├── pyproject.toml
+│   └── src/
+│       └── storage_adapter/
+│           ├── base.py        # Provider interface
+│           ├── providers/     # S3, Azure Blob, GCS adapters
+│           └── config.py
+├── tenant-auth/               # NEW - Tenant-aware authentication
+│   ├── pyproject.toml
+│   └── src/
+│       └── tenant_auth/
+│           ├── rbac.py        # Role-based access control
+│           ├── middleware.py  # FastAPI middleware
+│           └── models.py
+├── compliance-engine/         # NEW - Retention and compliance policies
+│   ├── pyproject.toml
+│   └── src/
+│       └── compliance_engine/
+│           ├── policies.py    # Policy definition and enforcement
+│           ├── scheduler.py   # Retention policy execution
+│           └── audit.py       # Audit trail functionality
+└── database-core/             # NEW - Multi-database SQLModel support
+    ├── pyproject.toml
+    └── src/
+        └── database_core/
+            ├── base.py        # Base model with tenant_id
+            ├── connection.py  # Multi-DB connection management
+            └── migrations.py  # Alembic integration
 ```
 
-**Structure Decision**: Microservice API structure following Library-First principle with clear separation of reusable libraries (tenant-management, storage-abstraction, rbac-enforcement) and service composition layer (tenant-management-api). This enables independent testing, versioning, and reuse of business logic across multiple services.
+**Structure Decision**: Microservice architecture with library-first approach. The tenant-service application assembles reusable libraries, each with focused responsibilities. Individual pyproject.toml files contain project-specific dependencies while shared dependencies remain in workspace root. This follows the established uv monorepo pattern and constitution requirements for library-first design and reusability.
 
 ## Complexity Tracking
 
-No constitution violations requiring justification. All complexity is driven by constitution compliance requirements (Library-First, Cloud Agnostic, Multi-Tenant Architecture, RBAC, Security by Design, Observability).
+> **Fill ONLY if Constitution Check has violations that must be justified**
+
+No violations detected. All design decisions align with constitution principles:
+
+- Library-first architecture successfully implemented
+- Cloud provider abstraction maintains portability
+- Multi-tenant design ensures strict isolation
+- RBAC implementation provides comprehensive security
+- Observability integrated throughout the stack
+
+## Phase Completion Status
+
+**Phase 0** ✅ **COMPLETE**: Research findings documented in [research.md](./research.md)
+- Multi-database strategy with SQLModel async support
+- Storage provider abstraction with async context managers  
+- Tenant-aware RBAC with hierarchical permissions
+- Compliance engine with automated policy enforcement
+- Monorepo integration with UV workspace and individual pyproject.toml files
+
+**Phase 1** ✅ **COMPLETE**: Design artifacts generated
+- Data model: [data-model.md](./data-model.md) - SQLModel entities with tenant isolation
+- API contracts: [contracts/openapi.yaml](./contracts/openapi.yaml) - RESTful API specification
+- Quickstart guide: [quickstart.md](./quickstart.md) - Development and usage documentation
+- Agent context: Updated via `.specify/scripts/bash/update-agent-context.sh`
+
+**Phase 2**: Ready for task generation via `/speckit.tasks` command
+
+## Generated Artifacts Summary
+
+1. **Research Documentation**: Technical decisions for multi-database, storage abstraction, authentication, and compliance
+2. **Data Model**: SQLModel entities using library-first approach with tenant isolation and RBAC support
+3. **API Contracts**: OpenAPI 3.0 specification with comprehensive endpoint coverage and security schemes
+4. **Implementation Guide**: Detailed quickstart with library integration examples and production considerations
+5. **Agent Context**: Updated copilot-instructions.md with new technology stack and architectural decisions
+
+**Next Steps**: Execute `/speckit.tasks` to generate implementation tasks based on this plan and design artifacts.

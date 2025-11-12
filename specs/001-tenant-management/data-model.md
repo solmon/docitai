@@ -12,10 +12,14 @@
 **Purpose**: Root aggregate representing an organization using the document management system
 
 ```python
-class Tenant(BaseEntity):
+# Using database-core library's TenantAwareBase from monorepo libs/
+from database_core.base import TenantAwareBase
+from sqlmodel import SQLModel, Field
+
+class Tenant(TenantAwareBase, table=True):
     """Tenant aggregate root with business logic for onboarding and configuration"""
     
-    # Identity
+    # Identity (inherits tenant_id, created_at, updated_at from TenantAwareBase)
     tenant_id: str = Field(primary_key=True, description="Unique tenant identifier")
     
     # Business Information
@@ -26,10 +30,8 @@ class Tenant(BaseEntity):
     
     # Operational
     status: TenantStatus = Field(default=TenantStatus.ACTIVE)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
     
-    # Configuration
+    # Configuration (using Pydantic model from workspace root dependencies)
     settings: TenantSettings = Field(description="Tenant-specific configuration")
     
     # Business Rules
@@ -65,31 +67,34 @@ class TenantSettings(BaseModel):
 **Purpose**: Tenant-specific storage provider configuration with encrypted credentials
 
 ```python
-class StorageConfiguration(BaseEntity):
+# Using storage-adapter library's provider types from monorepo libs/
+from storage_adapter.providers import StorageProviderType
+from storage_adapter.config import EncryptedConnectionConfig
+
+class StorageConfiguration(TenantAwareBase, table=True):
     """Storage configuration entity with encrypted credentials"""
     
-    # Identity
+    # Identity (inherits tenant_id from TenantAwareBase)
     config_id: str = Field(primary_key=True)
     tenant_id: str = Field(foreign_key="tenant.tenant_id", index=True)
     
-    # Provider Configuration
+    # Provider Configuration (using storage-adapter library types)
     provider_type: StorageProviderType = Field(description="Cloud storage provider")
     provider_region: str = Field(description="Provider-specific region/location")
     
-    # Connection Settings
+    # Connection Settings (using storage-adapter encryption)
     connection_config: EncryptedConnectionConfig = Field(description="Encrypted provider settings")
     
     # Operational
     is_active: bool = Field(default=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
     last_validated: Optional[datetime] = Field(description="Last successful connection test")
     
     # Business Rules
     async def validate_connection(self) -> ValidationResult:
-        """Test connection to storage provider"""
+        """Test connection to storage provider using storage-adapter library"""
         
     def encrypt_credentials(self) -> None:
-        """Ensure credentials are properly encrypted"""
+        """Ensure credentials are properly encrypted using storage-adapter encryption"""
 
 class StorageProviderType(str, Enum):
     AZURE_BLOB = "azure_blob"

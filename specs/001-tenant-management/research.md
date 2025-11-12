@@ -23,14 +23,14 @@
 
 **Implementation Approach**:
 ```python
-# Abstract interface in storage-abstraction library
+# Abstract interface in storage-adapter library (new cross-cutting library)
 class CloudStorageProvider(ABC):
     async def put_object(self, bucket: str, key: str, data: bytes, metadata: Dict) -> str
     async def get_object(self, bucket: str, key: str) -> bytes
     async def delete_object(self, bucket: str, key: str) -> bool
     async def list_objects(self, bucket: str, prefix: str) -> List[StorageObject]
 
-# Provider implementations
+# Provider implementations in storage-adapter library
 class AzureBlobProvider(CloudStorageProvider): ...
 class AWSS3Provider(CloudStorageProvider): ...
 class GCSProvider(CloudStorageProvider): ...
@@ -39,6 +39,11 @@ class GCSProvider(CloudStorageProvider): ...
 class StorageProviderFactory:
     def get_provider(self, tenant_config: StorageConfig) -> CloudStorageProvider
 ```
+
+**Monorepo Integration**:
+- Storage-adapter library with own pyproject.toml containing provider-specific SDKs
+- Shared in workspace root: aiofiles, pydantic for common async/validation needs
+- Project-specific: boto3 (S3), azure-storage-blob (Azure), google-cloud-storage (GCS)
 
 ### 2. Authentication Strategy & JWT Validation
 
@@ -57,7 +62,7 @@ class StorageProviderFactory:
 
 **Implementation Approach**:
 ```python
-# JWT validation dependency
+# JWT validation in tenant-auth library (new cross-cutting library)
 class JWTValidator:
     def __init__(self, issuer: str, audience: str, jwks_url: str)
     async def validate_token(self, token: str) -> TokenClaims
@@ -68,10 +73,16 @@ class TokenClaims:
     roles: List[str]
     permissions: List[str]
 
-# FastAPI dependency
+# FastAPI dependency using fastapi-core patterns
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> TokenClaims:
     return await jwt_validator.validate_token(token)
 ```
+
+**FastAPI-Core Integration**:
+- Leverage existing fastapi-core middleware patterns for consistent request/response handling
+- Extend fastapi-core logging with tenant context injection
+- Use fastapi-core app factory pattern for service initialization
+- Tenant-auth library integrates with fastapi-core security middleware
 
 ### 3. RBAC Implementation & Permission Model
 
@@ -138,7 +149,7 @@ async def create_folder(current_user: TokenClaims, tenant_id: str, folder_data: 
 
 **Implementation Approach**:
 ```python
-# Database configuration
+# Database configuration in database-core library (new cross-cutting library)
 class DatabaseConfig:
     primary_url: str  # PostgreSQL
     secondary_url: str  # SQL Server (optional)
@@ -146,19 +157,24 @@ class DatabaseConfig:
     max_overflow: int = 30
     pool_timeout: int = 30
 
-# Async session management
+# Async session management in database-core library
 class DatabaseManager:
     def __init__(self, config: DatabaseConfig)
     async def get_session(self, tenant_id: str = None) -> AsyncSession
     async def health_check(self) -> DatabaseHealth
 
-# Tenant-aware repository base
+# Tenant-aware repository base in database-core library
 class TenantAwareRepository:
     def __init__(self, session: AsyncSession, tenant_id: str)
     async def create(self, entity: BaseEntity) -> BaseEntity
     async def get_by_id(self, entity_id: str) -> Optional[BaseEntity]
     # Automatic tenant_id filtering in all queries
 ```
+
+**Monorepo Dependency Strategy**:
+- database-core library dependencies: SQLModel, asyncpg (PostgreSQL), aioodbc (SQL Server), alembic
+- Workspace root shared dependencies: pydantic (used across all libraries), pytest (testing)
+- Individual project dependencies only for specific database drivers and provider-specific needs
 
 ### 5. Threat Model & Security Implementation
 
@@ -204,6 +220,62 @@ class ComplianceAuditLog:
 - Data in transit: TLS 1.3 for all communications
 - Database: Transparent data encryption (TDE) when available
 
+### 6. Cross-Cutting Library Strategy & UV Monorepo Integration
+
+**Decision**: Create four new reusable libraries leveraging existing fastapi-core foundation
+
+**Rationale**:
+- Follows constitution requirement for library-first architecture
+- Enables reuse across future microservices in the document management system
+- Individual pyproject.toml files allow precise dependency management
+- UV workspace integration provides efficient dependency resolution and caching
+
+**Library Architecture**:
+1. **storage-adapter** (NEW): Cloud provider abstraction with async interface
+   - Dependencies: boto3, azure-storage-blob, google-cloud-storage, aiofiles
+   - Scope: Multi-provider storage operations with tenant-aware configurations
+
+2. **tenant-auth** (NEW): Authentication and RBAC middleware for FastAPI
+   - Dependencies: PyJWT, passlib, python-multipart
+   - Scope: JWT validation, role-based authorization, tenant isolation
+
+3. **compliance-engine** (NEW): Policy engine for retention and compliance automation
+   - Dependencies: celery (background tasks), croniter (scheduling)
+   - Scope: Policy definition, automated enforcement, audit trail generation
+
+4. **database-core** (NEW): Multi-database SQLModel foundation with tenant awareness
+   - Dependencies: SQLModel, asyncpg, aioodbc, alembic
+   - Scope: Database abstraction, connection management, tenant-scoped repositories
+
+**Dependency Management Strategy**:
+```toml
+# Workspace root pyproject.toml (shared across monorepo)
+[project]
+dependencies = [
+    "fastapi>=0.115.12",     # Used by fastapi-core and tenant-service
+    "pydantic>=2.10.4",      # Used by all libraries for validation
+    "uvicorn>=0.34.0",       # Server for all FastAPI services
+    "pytest>=8.3.4",        # Testing across all projects
+    "structlog>=24.4.0"      # Logging from fastapi-core
+]
+
+# Individual library pyproject.toml (project-specific only)
+[project]  # storage-adapter example
+dependencies = [
+    "storage-adapter",       # Self-reference for uv workspace
+    "boto3>=1.34.0",        # S3 provider specific
+    "azure-storage-blob>=12.19.0",  # Azure provider specific
+    "google-cloud-storage>=2.10.0", # GCS provider specific
+    "aiofiles>=23.2.0"      # Async file operations
+]
+```
+
+**Integration with FastAPI-Core**:
+- Extend existing app factory patterns for tenant-service initialization
+- Leverage middleware framework for tenant-auth integration
+- Use configuration management patterns for multi-database setup
+- Extend logging context with tenant-aware structured logging
+
 ## Research Outcomes Summary
 
 All NEEDS CLARIFICATION items resolved:
@@ -212,5 +284,12 @@ All NEEDS CLARIFICATION items resolved:
 3. ✅ RBAC implementation: Hierarchical roles with tenant-scoped permissions
 4. ✅ Multi-database strategy: SQLModel with async pooling and tenant routing
 5. ✅ Security implementation: Multi-layered defense with encryption and audit
+6. ✅ Library strategy: Four cross-cutting libraries with UV monorepo integration
+
+**Library Creation Plan**:
+- ✅ Use existing fastapi-core as foundation
+- ✅ Create storage-adapter, tenant-auth, compliance-engine, database-core libraries
+- ✅ Individual pyproject.toml with project-specific dependencies only
+- ✅ Workspace root dependencies for commonly reused packages
 
 **Next Phase**: Proceed to Phase 1 (Design & Contracts) with constitution compliance validation.

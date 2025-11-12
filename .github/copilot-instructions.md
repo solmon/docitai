@@ -56,6 +56,7 @@ End of instructions
 ## Active Technologies
 - Python 3.11+ + FastAPI, SQLModel, Pydantic, Alembic (migrations), PyJWT (auth) (001-tenant-management)
 - PostgreSQL (primary), SQL Server (alternative) - multi-database support via SQLModel (001-tenant-management)
+- Python 3.12+ (aligned with workspace requirements) + FastAPI, SQLModel, Pydantic, Alembic (migrations), PyJWT (auth) (001-tenant-management)
 
 ## Recent Changes
 - 001-tenant-management: Added Python 3.11+ + FastAPI, SQLModel, Pydantic, Alembic (migrations), PyJWT (auth)

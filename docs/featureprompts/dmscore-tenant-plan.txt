@@ -97,3 +97,12 @@ Deployment
 Containerized using Docker.
 Orchestrated via Kubernetes.
 CI/CD pipeline for automated builds and deployments.
+
+
+-- update:
+update the created plan with following points:
+- use fastapi-core library for any fastapi projects which abstracts reusable fastapi functions
+- create any cross cutting libraries whereever we need reusability.
+- use the uv monorepo already created 
+- the individual projects toml files to have dependencies specific to the project only
+- add the dependencies to the workspace root project.toml only if these are mostly be reused across the monorepo.
