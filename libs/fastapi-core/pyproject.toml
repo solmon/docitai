@@ -1,0 +1,33 @@
+[project]
+name = "fastapi-core"
+dynamic = ["version"]
+description = "Core FastAPI setup and utilities"
+authors = [{ name = "Solmon", email = "solmon@gmail.com" }]
+readme = "README.md"
+
+requires-python = ">=3.12.4"
+
+dependencies = [
+  "asgi-correlation-id>=4.3.4",
+  "colorama>=0.4.6",
+  "fastapi>=0.115.6",
+  "orjson>=3.10.12",
+  "pydantic>=2.10.4",
+  "pydantic-settings>=2.7.0",
+  "rich>=13.9.4",
+  "structlog>=24.4.0",
+  "uvicorn>=0.34.0",
+]
+
+[build-system]
+requires = ["hatchling", "uv-dynamic-versioning", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.hatch.build.targets.wheel.hooks.custom]
+path = "./build_hook.py"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "fastapi_core/_version.py"
