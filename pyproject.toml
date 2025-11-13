@@ -25,6 +25,16 @@ dev = [
     "ruff>=0.8.4"       
 ]
 
+mssql = [
+    "pyodbc>=5.0.0",
+    "sqlalchemy[mssql]>=2.0.0",
+]
+
+# postgres = [
+#     "psycopg2-binary>=2.9.0",
+#     "sqlalchemy[postgresql]>=2.0.0",
+# ]
+
 [tool.setuptools.packages.find]
 where = ["libs", "apps"]
 
@@ -55,4 +65,13 @@ lint = [
 format = [{ cmd = "ruff check --select I --fix" }, { cmd = "ruff format" }]
 
 # Run tenant-service application with all workspace dependencies
-run_ts = { cmd = "uv run python -m uvicorn tenant_service.main:app --reload --port 8000 --app-dir apps/tenant-service/src" }
+run_ts = { cmd = "python -m uvicorn tenant_service.main:app --reload --port 8000 --app-dir apps/tenant-service/src", help = "Run tenant service with auto-reload" }
+
+# Run tenant service with MSSQL (requires .env configuration)
+run_ts_mssql = { cmd = "python -m uvicorn tenant_service.main:app --reload --port 8000 --app-dir apps/tenant-service/src", help = "Run tenant service with MSSQL database" }
+
+# Run tests
+test = { cmd = "pytest tests/ -v", help = "Run all tests" }
+
+# Run tests with coverage
+test_cov = { cmd = "pytest tests/ --cov=src --cov-report=html", help = "Run tests with coverage report" }

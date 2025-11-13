@@ -11,5 +11,13 @@ dependencies = [
     "alembic>=1.13.0",
 ]
 
-[tool.uv]
-workspaces = ["../.."]
+[dependency-groups]
+mssql = [
+    "pyodbc>=5.0.0",
+    "sqlalchemy[mssql]>=2.0.0",
+]
+
+postgres = [
+    "psycopg2-binary>=2.9.0",
+    "sqlalchemy[postgresql]>=2.0.0",
+]

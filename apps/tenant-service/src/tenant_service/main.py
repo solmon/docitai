@@ -1,6 +1,8 @@
 """Tenant service FastAPI application entry point."""
 
 import logging
+import os
+from pathlib import Path
 
 from database_core.connection import DatabaseManager
 from fastapi import FastAPI, status

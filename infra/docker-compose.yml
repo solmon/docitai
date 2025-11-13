@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: docitai-postgres
+    environment:
+      POSTGRES_USER: docitai
+      POSTGRES_PASSWORD: docitai-dev-password
+      POSTGRES_DB: docitai_dev
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - docitai-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docitai -d docitai_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command:
+      - "postgres"
+      - "-c"
+      - "log_statement=all"
+      - "-c"
+      - "log_duration=on"
+
+  # MSSQL Server
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: docitai-mssql
+    user: root
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "DocitaiDev@123"
+      MSSQL_PID: "Developer"
+      MSSQL_AGENT_ENABLED: "true"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    networks:
+      - docitai-network
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'DocitaiDev@123' -Q 'SELECT 1' -C"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      - postgres
+
+  # PgAdmin for PostgreSQL Management (Optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: docitai-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@docitai.local
+      PGADMIN_DEFAULT_PASSWORD: admin-password
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "5050:80"
+    networks:
+      - docitai-network
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+    driver: local
+  mssql_data:
+    driver: local
+
+networks:
+  docitai-network:
+    driver: bridge
