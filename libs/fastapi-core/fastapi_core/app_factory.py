@@ -1,6 +1,6 @@
 from asgi_correlation_id import CorrelationIdMiddleware
 from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
+from fastapi.responses import ORJSONResponse, PlainTextResponse
 
 from ._build_info import BUILD_TIME
 from ._version import __version__
@@ -10,10 +10,12 @@ from .middlewares import (
     LogContextMiddleware,
     ResponseTimeMiddleware,
     SecurityHeadersMiddleware,
+    MetricsMiddleware,
+    AuthenticationMetricsMiddleware,
 )
 
 
-def create_app(app_name: str, lifespan=None) -> FastAPI:  # type: ignore
+def create_app(app_name: str, lifespan=None, enable_metrics: bool = True) -> FastAPI:  # type: ignore
     """
     Factory function to create a FastAPI application instance.
 
@@ -22,6 +24,7 @@ def create_app(app_name: str, lifespan=None) -> FastAPI:  # type: ignore
         app_name (str): The name of the application for logging and identification.
         lifespan: A callable that returns a Lifespan instance
         for managing the app's lifespan events.
+        enable_metrics (bool): Enable Prometheus metrics collection. Defaults to True.
 
     Returns:
     -------
@@ -40,6 +43,9 @@ def create_app(app_name: str, lifespan=None) -> FastAPI:  # type: ignore
     configure_logging(app_name)
 
     # Add middlewares
+    if enable_metrics:
+        app.add_middleware(AuthenticationMetricsMiddleware)
+        app.add_middleware(MetricsMiddleware)
     app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(ResponseTimeMiddleware)
     app.add_middleware(LogContextMiddleware)
@@ -51,5 +57,19 @@ def create_app(app_name: str, lifespan=None) -> FastAPI:  # type: ignore
     @app.get("/", summary="Root Endpoint", tags=["Health Check"])
     def root() -> dict[str, str]:
         return {"build": f"{__version__}/{BUILD_TIME}"}
+
+    # Metrics endpoint for Prometheus
+    if enable_metrics:
+        from .metrics import get_metrics_text
+
+        @app.get(
+            "/metrics",
+            summary="Prometheus Metrics",
+            tags=["Monitoring"],
+            response_class=PlainTextResponse,
+        )
+        def metrics() -> str:
+            """Export metrics in Prometheus text format."""
+            return get_metrics_text()
 
     return app

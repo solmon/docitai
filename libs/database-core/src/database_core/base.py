@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlmodel import Column, Field, SQLModel, String
+from sqlmodel import Field, SQLModel
 
 
 class TenantAwareBase(SQLModel):
@@ -22,7 +22,7 @@ class TenantAwareBase(SQLModel):
     # Multi-tenant isolation - mandatory on all tenant-bound entities
     tenant_id: str = Field(
         ...,
-        sa_column=Column(String, nullable=False, index=True),
+        index=True,
         description="Tenant identifier for multi-tenant isolation",
     )
 

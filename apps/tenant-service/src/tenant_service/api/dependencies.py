@@ -40,6 +40,9 @@ async def get_db_session() -> Session:
 
 SessionDep = Annotated[Session, Depends(get_db_session)]
 
+# Backward compatibility alias
+get_db = get_db_session
+
 
 async def get_current_user(
     authorization: Optional[str] = Header(None),

@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi_core.app_factory import create_app
 
-from tenant_service.api.v1 import storage, tenants
+from tenant_service.api.v1 import storage, tenants, retention_policies, compliance_audit, folders, master_data_proper, health, metrics
 from tenant_service.config import settings
 from tenant_service.exceptions import ErrorResponse, TenantServiceException
 
@@ -25,7 +25,7 @@ def create_application() -> FastAPI:
     Integrates database, authentication, and error handling middleware.
     """
     # Create base app using fastapi-core factory
-    app = create_app()
+    app = create_app("tenant-service")
 
     # Add tenant service specific configuration
     app.title = "Tenant Management Service"
@@ -41,6 +41,8 @@ def create_application() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # Metrics middleware is now included in create_app() with enable_metrics=True by default
+
     # Initialize database on startup
     @app.on_event("startup")
     async def startup():
@@ -52,7 +54,14 @@ def create_application() -> FastAPI:
                 echo_sql=settings.database.echo_sql,
             )
             DatabaseManager.create_db_and_tables()
-            logger.info("Application startup completed successfully")
+            logger.info("Application startup completed successfully - database initialized")
+        except ModuleNotFoundError as e:
+            if "psycopg2" in str(e):
+                logger.warning("psycopg2 not installed - database initialization skipped (development mode)")
+                logger.info("Application startup completed - running in development mode without database")
+            else:
+                logger.error(f"Failed to initialize database: {e}")
+                raise
         except Exception as e:
             logger.error(f"Failed to initialize database: {e}")
             raise
@@ -93,20 +102,20 @@ def create_application() -> FastAPI:
     logger.info("Tenant service initialized with all middleware and error handlers")
 
     # Include API routers
+    app.include_router(health.router)
+    app.include_router(metrics.router)
     app.include_router(tenants.router)
     app.include_router(storage.router)
+    app.include_router(retention_policies.router)
+    app.include_router(compliance_audit.router)
+    app.include_router(folders.router)
+    app.include_router(master_data_proper.router)
 
     return app
 
 
 # Create the application instance
 app = create_application()
-
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint."""
-    return {"status": "healthy", "service": "tenant-management"}
 
 
 @app.get("/")
