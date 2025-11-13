@@ -50,21 +50,30 @@ class DatabaseManager:
             from sqlalchemy.pool import NullPool
 
             pool_class = NullPool
-            connect_args = {"check_same_thread": False}
+            connect_args = {
+                "check_same_thread": False,
+                "timeout": 30,
+            }
+            # NullPool doesn't support pool_size/max_overflow
+            cls._engine = create_engine(
+                database_url,
+                echo=echo_sql,
+                poolclass=pool_class,
+                connect_args=connect_args,
+            )
         else:
             from sqlalchemy.pool import QueuePool
 
             pool_class = QueuePool
             connect_args = {"check_same_thread": False}
-
-        cls._engine = create_engine(
-            database_url,
-            echo=echo_sql,
-            poolclass=pool_class,
-            pool_size=pool_size,
-            max_overflow=10,
-            connect_args=connect_args,
-        )
+            cls._engine = create_engine(
+                database_url,
+                echo=echo_sql,
+                poolclass=pool_class,
+                pool_size=pool_size,
+                max_overflow=10,
+                connect_args=connect_args,
+            )
 
         logger.info(f"Database engine initialized: type={database_type}, url={database_url.split('@')[0]}***")
 
