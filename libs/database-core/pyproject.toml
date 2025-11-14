@@ -13,7 +13,7 @@ dependencies = [
 
 [dependency-groups]
 mssql = [
-    "pyodbc>=5.0.0",
+    "pymssql>=2.3.0",
     "sqlalchemy[mssql]>=2.0.0",
 ]
 
