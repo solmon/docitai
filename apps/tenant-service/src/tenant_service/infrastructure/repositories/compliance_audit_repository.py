@@ -94,8 +94,7 @@ class ComplianceAuditRepository:
         statement = (
             select(ComplianceAuditTrail)
             .where(
-                (ComplianceAuditTrail.tenant_id == user_tenant_id)
-                & (ComplianceAuditTrail.action_type == action_type)
+                (ComplianceAuditTrail.tenant_id == user_tenant_id) & (ComplianceAuditTrail.action_type == action_type)
             )
             .order_by(ComplianceAuditTrail.created_at.desc())
             .limit(limit)
@@ -115,8 +114,7 @@ class ComplianceAuditRepository:
         statement = (
             select(ComplianceAuditTrail)
             .where(
-                (ComplianceAuditTrail.tenant_id == user_tenant_id)
-                & (ComplianceAuditTrail.compliance_status == status)
+                (ComplianceAuditTrail.tenant_id == user_tenant_id) & (ComplianceAuditTrail.compliance_status == status)
             )
             .order_by(ComplianceAuditTrail.created_at.desc())
             .limit(limit)

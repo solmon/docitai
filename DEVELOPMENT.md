@@ -28,7 +28,7 @@
    ```bash
    # Using poe task
    poe run_ts
-   
+
    # Or directly with uvicorn
    python -m uvicorn tenant_service.main:app --host 0.0.0.0 --port 8000 --reload --app-dir apps/tenant-service/src
    ```
@@ -37,7 +37,7 @@ The service will be available at `http://localhost:8000`
 
 ## Environment Configuration
 
-The tenant service uses environment variables defined in `.env` (git-ignored). 
+The tenant service uses environment variables defined in `.env` (git-ignored).
 
 **Template:** See `apps/tenant-service/.env.example`
 
@@ -251,3 +251,69 @@ curl http://localhost:8000/health/detailed | python3 -m json.tool
 - [SQLModel Documentation](https://sqlmodel.tiangolo.com/)
 - [Pydantic V2 Guide](https://docs.pydantic.dev/latest/)
 - [Docker Compose Reference](https://docs.docker.com/compose/reference/)
+
+## Container Deployment
+
+### Build Docker Image
+
+```bash
+# Build production image
+docker build -t docitai/tenant-service:latest \
+  --target production \
+  -f apps/tenant-service/Dockerfile .
+
+# Build development image (with hot reload)
+docker build -t docitai/tenant-service:dev \
+  --target development \
+  -f apps/tenant-service/Dockerfile .
+```
+
+### Run with Docker Compose
+
+```bash
+# Start tenant service with PostgreSQL
+docker compose -f infra/docker-compose.yml up tenant-service
+
+# Start with development mode (hot reload)
+docker compose -f infra/docker-compose.yml --profile dev up tenant-service-dev
+
+# Start with distributed tracing (Jaeger)
+docker compose -f infra/docker-compose.yml --profile tracing up tenant-service jaeger
+
+# Start with admin tools (pgAdmin)
+docker compose -f infra/docker-compose.yml --profile admin up pgadmin
+```
+
+### Production Deployment (Kubernetes)
+
+```bash
+# Apply Kubernetes manifests
+cd infra/k8s
+kubectl apply -f namespace.yaml
+kubectl apply -f configmap.yaml
+kubectl apply -f secret.yaml  # Update secrets first!
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+kubectl apply -f hpa.yaml
+kubectl apply -f ingress.yaml
+
+# Or apply all at once
+kubectl apply -f .
+
+# Check deployment status
+kubectl -n docitai get pods
+kubectl -n docitai get svc
+kubectl -n docitai logs -l app.kubernetes.io/name=tenant-service
+```
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DB_DATABASE_URL` | Database connection string | Required |
+| `DB_DATABASE_TYPE` | `postgresql` or `sqlserver` | `postgresql` |
+| `APP_ENVIRONMENT` | `development`, `staging`, `production` | `development` |
+| `APP_LOG_LEVEL` | Log level | `INFO` |
+| `JWT_SECRET_KEY` | JWT signing key | Required |
+| `OTEL_ENABLED` | Enable OpenTelemetry tracing | `false` |
+| `OTEL_EXPORTER_ENDPOINT` | Jaeger/OTLP endpoint | - |

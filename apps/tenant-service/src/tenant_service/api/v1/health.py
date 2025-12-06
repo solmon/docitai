@@ -1,6 +1,6 @@
 """Health check endpoints for Kubernetes probes and monitoring."""
 
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, Depends
 from typing import Dict, Any
 import logging
 
@@ -20,10 +20,10 @@ router = APIRouter(
 
 def get_health_service(session=Depends(get_async_session)) -> HealthCheckService:
     """Get health check service with dependencies.
-    
+
     Args:
         session: Database session
-        
+
     Returns:
         HealthCheckService instance
     """
@@ -50,25 +50,20 @@ async def liveness_probe(
     health_service: HealthCheckService = Depends(get_health_service),
 ) -> Dict[str, Any]:
     """Liveness probe endpoint.
-    
+
     This endpoint is used by Kubernetes to check if the pod is running.
     A failed probe will result in pod restart.
-    
+
     Returns:
         Health status and component details
     """
     try:
         result = await health_service.check_liveness()
-        
-        status_code = 200 if result.is_healthy() else 503
-        
+
         return {
             "status": result.status.value,
             "timestamp": result.timestamp.isoformat(),
-            "components": {
-                name: component.to_dict()
-                for name, component in result.components.items()
-            },
+            "components": {name: component.to_dict() for name, component in result.components.items()},
         }
     except Exception as e:
         logger.error(f"Liveness probe failed: {e}", exc_info=True)
@@ -94,27 +89,23 @@ async def readiness_probe(
     health_service: HealthCheckService = Depends(get_health_service),
 ) -> Dict[str, Any]:
     """Readiness probe endpoint.
-    
+
     This endpoint is used by Kubernetes to check if the pod is ready to receive traffic.
     A failed probe will result in traffic being routed away from the pod.
-    
+
     Returns:
         Health status of all dependencies
     """
     try:
         result = await health_service.check_readiness()
-        
+
         # For readiness, we need all critical components healthy
-        status_code = 200 if result.is_ready() else 503
-        
+
         return {
             "status": result.status.value,
             "timestamp": result.timestamp.isoformat(),
             "ready": result.is_ready(),
-            "components": {
-                name: component.to_dict()
-                for name, component in result.components.items()
-            },
+            "components": {name: component.to_dict() for name, component in result.components.items()},
         }
     except Exception as e:
         logger.error(f"Readiness probe failed: {e}", exc_info=True)
@@ -137,34 +128,28 @@ async def detailed_health(
     health_service: HealthCheckService = Depends(get_health_service),
 ) -> Dict[str, Any]:
     """Detailed health status endpoint.
-    
+
     Provides comprehensive health information including response times
     and detailed component status. Useful for monitoring dashboards.
-    
+
     Returns:
         Detailed health status for all components
     """
     try:
         liveness = await health_service.check_liveness()
         readiness = await health_service.check_readiness()
-        
+
         return {
             "liveness": {
                 "status": liveness.status.value,
                 "timestamp": liveness.timestamp.isoformat(),
-                "components": {
-                    name: component.to_dict()
-                    for name, component in liveness.components.items()
-                },
+                "components": {name: component.to_dict() for name, component in liveness.components.items()},
             },
             "readiness": {
                 "status": readiness.status.value,
                 "timestamp": readiness.timestamp.isoformat(),
                 "ready": readiness.is_ready(),
-                "components": {
-                    name: component.to_dict()
-                    for name, component in readiness.components.items()
-                },
+                "components": {name: component.to_dict() for name, component in readiness.components.items()},
             },
         }
     except Exception as e:

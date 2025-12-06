@@ -66,9 +66,7 @@ class CreateRetentionPolicyHandler:
 
     def handle(self, db: Session, command: CreateRetentionPolicyCommand):
         """Execute create policy command."""
-        logger.info(
-            f"Creating policy '{command.data.name}' for tenant {command.user_tenant_id}"
-        )
+        logger.info(f"Creating policy '{command.data.name}' for tenant {command.user_tenant_id}")
         policy = self.service.create_policy(
             db=db,
             user_tenant_id=command.user_tenant_id,

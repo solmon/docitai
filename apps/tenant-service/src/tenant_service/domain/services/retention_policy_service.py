@@ -1,7 +1,6 @@
 """Retention policy domain service with business logic."""
 
 from datetime import datetime, timedelta
-from typing import Optional
 from uuid import UUID
 
 from sqlmodel import Session
@@ -10,12 +9,8 @@ from tenant_service.domain.enums.retention_types import (
     AppliesTo,
     AuditActionType,
     ComplianceStatus,
-    ResourceType,
-    RetentionType,
 )
 from tenant_service.exceptions import (
-    ResourceNotFoundError,
-    TenantServiceException,
     ValidationError,
 )
 from tenant_service.infrastructure.models.retention_policy import (
@@ -51,9 +46,7 @@ class RetentionPolicyService:
         """Create retention policy with validation."""
         # Validate configuration based on applies_to
         if data.applies_to != AppliesTo.ALL and not data.filter_config:
-            raise ValidationError(
-                "filter_config required when applies_to is not ALL"
-            )
+            raise ValidationError("filter_config required when applies_to is not ALL")
 
         policy = self.policy_repo.create(
             db=db,
@@ -95,9 +88,7 @@ class RetentionPolicyService:
         offset: int = 0,
     ):
         """List policies for tenant."""
-        return self.policy_repo.list_by_tenant(
-            db, user_tenant_id, limit=limit, offset=offset
-        )
+        return self.policy_repo.list_by_tenant(db, user_tenant_id, limit=limit, offset=offset)
 
     def update_policy(
         self,
@@ -184,9 +175,7 @@ class RetentionPolicyService:
         # 4. Log each action to audit trail
 
         # Increment execution count
-        executed_count = self.policy_repo.increment_execution_count(
-            db, user_tenant_id, policy_id
-        )
+        executed_count = self.policy_repo.increment_execution_count(db, user_tenant_id, policy_id)
 
         # Log execution
         self.audit_repo.log_action(

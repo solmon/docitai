@@ -36,9 +36,7 @@ class DeleteFolderHandler:
 
     def handle(self, db: Session, command: DeleteFolderCommand):
         """Execute delete folder command."""
-        logger.info(
-            f"Deleting folder {command.folder_id} (cascade to children)"
-        )
+        logger.info(f"Deleting folder {command.folder_id} (cascade to children)")
         self.service.delete_folder(
             db=db,
             user_tenant_id=command.user_tenant_id,

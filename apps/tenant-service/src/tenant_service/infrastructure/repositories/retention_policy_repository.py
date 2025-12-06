@@ -5,7 +5,7 @@ from uuid import UUID
 
 from sqlmodel import Session, select
 
-from tenant_service.exceptions import ResourceNotFoundError, TenantIsolationViolationError
+from tenant_service.exceptions import ResourceNotFoundError
 from tenant_service.infrastructure.models.retention_policy import RetentionPolicy
 
 
@@ -70,8 +70,7 @@ class RetentionPolicyRepository:
     def list_active(self, db: Session, user_tenant_id: UUID) -> list[RetentionPolicy]:
         """List active policies for scheduler execution."""
         statement = select(RetentionPolicy).where(
-            (RetentionPolicy.tenant_id == user_tenant_id)
-            & (RetentionPolicy.is_active.is_(True))
+            (RetentionPolicy.tenant_id == user_tenant_id) & (RetentionPolicy.is_active.is_(True))
         )
         return db.exec(statement).all()
 
@@ -110,9 +109,7 @@ class RetentionPolicyRepository:
         db.add(policy)
         db.commit()
 
-    def increment_execution_count(
-        self, db: Session, user_tenant_id: UUID, policy_id: UUID
-    ) -> int:
+    def increment_execution_count(self, db: Session, user_tenant_id: UUID, policy_id: UUID) -> int:
         """Increment execution count for tracking."""
         policy = self.get_by_id(db, user_tenant_id, policy_id)
         policy.executed_count += 1

@@ -47,9 +47,7 @@ class FolderRepository:
 
     def get_by_id(self, db: Session, user_tenant_id: UUID, folder_id: UUID) -> Folder:
         """Get folder by ID with tenant verification."""
-        statement = select(Folder).where(
-            (Folder.id == folder_id) & (Folder.tenant_id == user_tenant_id)
-        )
+        statement = select(Folder).where((Folder.id == folder_id) & (Folder.tenant_id == user_tenant_id))
         folder = db.exec(statement).first()
         if not folder:
             raise ResourceNotFoundError(f"Folder {folder_id} not found")
@@ -58,9 +56,7 @@ class FolderRepository:
     def get_by_path(self, db: Session, user_tenant_id: UUID, path: str) -> Optional[Folder]:
         """Get folder by path."""
         statement = select(Folder).where(
-            (Folder.tenant_id == user_tenant_id)
-            & (Folder.path == path)
-            & (Folder.deleted_at.is_(None))
+            (Folder.tenant_id == user_tenant_id) & (Folder.path == path) & (Folder.deleted_at.is_(None))
         )
         return db.exec(statement).first()
 
@@ -72,12 +68,10 @@ class FolderRepository:
         include_archived: bool = False,
     ) -> list[Folder]:
         """List children of folder."""
-        statement = select(Folder).where(
-            (Folder.tenant_id == user_tenant_id) & (Folder.parent_id == parent_id)
-        )
+        statement = select(Folder).where((Folder.tenant_id == user_tenant_id) & (Folder.parent_id == parent_id))
         if not include_archived:
             statement = statement.where(Folder.is_archived.is_(False))
-        
+
         statement = statement.order_by(Folder.name)
         return db.exec(statement).all()
 
@@ -91,10 +85,7 @@ class FolderRepository:
         """List all folders for tenant (excludes soft-deleted)."""
         statement = (
             select(Folder)
-            .where(
-                (Folder.tenant_id == user_tenant_id)
-                & (Folder.deleted_at.is_(None))
-            )
+            .where((Folder.tenant_id == user_tenant_id) & (Folder.deleted_at.is_(None)))
             .order_by(Folder.created_at.desc())
             .limit(limit)
             .offset(offset)
@@ -104,25 +95,19 @@ class FolderRepository:
     def get_root_folders(self, db: Session, user_tenant_id: UUID) -> list[Folder]:
         """Get top-level folders (parent_id is null)."""
         statement = select(Folder).where(
-            (Folder.tenant_id == user_tenant_id)
-            & (Folder.parent_id.is_(None))
-            & (Folder.deleted_at.is_(None))
+            (Folder.tenant_id == user_tenant_id) & (Folder.parent_id.is_(None)) & (Folder.deleted_at.is_(None))
         )
         return db.exec(statement).all()
 
-    def list_all_descendants(
-        self, db: Session, user_tenant_id: UUID, parent_id: UUID
-    ) -> list[Folder]:
+    def list_all_descendants(self, db: Session, user_tenant_id: UUID, parent_id: UUID) -> list[Folder]:
         """Get all descendants of folder recursively."""
         # Get direct children
         children = self.list_by_parent(db, user_tenant_id, parent_id, include_archived=False)
-        
+
         descendants = list(children)
         for child in children:
-            descendants.extend(
-                self.list_all_descendants(db, user_tenant_id, child.id)
-            )
-        
+            descendants.extend(self.list_all_descendants(db, user_tenant_id, child.id))
+
         return descendants
 
     def update(
@@ -148,7 +133,7 @@ class FolderRepository:
     def soft_delete(self, db: Session, user_tenant_id: UUID, folder_id: UUID) -> None:
         """Soft delete folder."""
         from datetime import datetime
-        
+
         folder = self.get_by_id(db, user_tenant_id, folder_id)
         folder.deleted_at = datetime.utcnow()
         db.add(folder)
@@ -179,8 +164,6 @@ class FolderRepository:
     def path_exists(self, db: Session, user_tenant_id: UUID, path: str) -> bool:
         """Check if path exists for tenant."""
         statement = select(Folder).where(
-            (Folder.tenant_id == user_tenant_id)
-            & (Folder.path == path)
-            & (Folder.deleted_at.is_(None))
+            (Folder.tenant_id == user_tenant_id) & (Folder.path == path) & (Folder.deleted_at.is_(None))
         )
         return db.exec(statement).first() is not None

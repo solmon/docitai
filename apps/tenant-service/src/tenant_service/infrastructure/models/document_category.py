@@ -4,18 +4,17 @@ Represents document classification categories that organize document types.
 Supports optional hierarchy (parent-child relationships).
 """
 
-from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlmodel import Column, JSON, Field, String, SQLModel
+from sqlmodel import Field, SQLModel
 
 from database_core import TenantAwareBase
 
 
 class DocumentCategory(TenantAwareBase, table=True):
     """Document Category Entity
-    
+
     Organizes document types into categories for classification.
     Supports optional parent-child hierarchy for nested categorization.
     """

@@ -20,7 +20,6 @@ from tenant_service.application.handlers.policy_execution_handler import (
     ExecuteRetentionPolicyHandler,
 )
 from tenant_service.domain.services.retention_policy_service import RetentionPolicyService
-from tenant_service.domain.services.compliance_service import ComplianceService
 from tenant_service.exceptions import ResourceNotFoundError, TenantServiceException
 from tenant_service.infrastructure.models.retention_policy import (
     RetentionPolicyCreate,
@@ -67,9 +66,7 @@ async def create_policy(
         raise HTTPException(status_code=e.status_code, detail=str(e))
     except Exception as e:
         logger.error(f"Unexpected error creating policy: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
 
 @router.get("/{policy_id}", response_model=RetentionPolicyResponse)
@@ -89,9 +86,7 @@ async def get_policy(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
         logger.error(f"Error fetching policy: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
 
 @router.get("", response_model=list[RetentionPolicyResponse])
@@ -110,9 +105,7 @@ async def list_policies(
         return policies
     except Exception as e:
         logger.error(f"Error listing policies: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
 
 @router.put("/{policy_id}", response_model=RetentionPolicyResponse)
@@ -144,9 +137,7 @@ async def update_policy(
         raise HTTPException(status_code=e.status_code, detail=str(e))
     except Exception as e:
         logger.error(f"Unexpected error updating policy: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
 
 @router.delete("/{policy_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -172,9 +163,7 @@ async def delete_policy(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
         logger.error(f"Error deleting policy: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
 
 @router.post(
@@ -208,6 +197,4 @@ async def execute_policy(
         raise HTTPException(status_code=e.status_code, detail=str(e))
     except Exception as e:
         logger.error(f"Unexpected error executing policy: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")

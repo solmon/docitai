@@ -39,10 +39,10 @@ class CreateCategoryHandler:
 
     async def handle(self, cmd: CreateCategoryCommand) -> DocumentCategoryResponse:
         """Create a new category
-        
+
         Args:
             cmd: Create command
-            
+
         Returns:
             Created category response
         """
@@ -92,10 +92,10 @@ class UpdateCategoryHandler:
 
     async def handle(self, cmd: UpdateCategoryCommand) -> DocumentCategoryResponse:
         """Update an existing category
-        
+
         Args:
             cmd: Update command
-            
+
         Returns:
             Updated category response
         """
@@ -140,10 +140,10 @@ class DeleteCategoryHandler:
 
     async def handle(self, cmd: DeleteCategoryCommand) -> bool:
         """Delete a category (soft delete)
-        
+
         Args:
             cmd: Delete command
-            
+
         Returns:
             True if deleted
         """
@@ -165,10 +165,10 @@ class RestoreCategoryHandler:
 
     async def handle(self, cmd: RestoreCategoryCommand) -> bool:
         """Restore a soft-deleted category
-        
+
         Args:
             cmd: Restore command
-            
+
         Returns:
             True if restored
         """
@@ -199,10 +199,10 @@ class CreateDocumentTypeHandler:
 
     async def handle(self, cmd: CreateDocumentTypeCommand) -> DocumentTypeResponse:
         """Create a new document type
-        
+
         Args:
             cmd: Create command
-            
+
         Returns:
             Created document type response
         """
@@ -255,10 +255,10 @@ class UpdateDocumentTypeHandler:
 
     async def handle(self, cmd: UpdateDocumentTypeCommand) -> DocumentTypeResponse:
         """Update a document type
-        
+
         Args:
             cmd: Update command
-            
+
         Returns:
             Updated document type response
         """
@@ -305,10 +305,10 @@ class DeleteDocumentTypeHandler:
 
     async def handle(self, cmd: DeleteDocumentTypeCommand) -> bool:
         """Delete a document type (soft delete)
-        
+
         Args:
             cmd: Delete command
-            
+
         Returns:
             True if deleted
         """
@@ -330,10 +330,10 @@ class RestoreDocumentTypeHandler:
 
     async def handle(self, cmd: RestoreDocumentTypeCommand) -> bool:
         """Restore a soft-deleted document type
-        
+
         Args:
             cmd: Restore command
-            
+
         Returns:
             True if restored
         """

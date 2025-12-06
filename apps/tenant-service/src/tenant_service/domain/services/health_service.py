@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 class ComponentStatus(str, Enum):
     """Status of a health component."""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -19,6 +20,7 @@ class ComponentStatus(str, Enum):
 @dataclass
 class ComponentHealth:
     """Health status of a single component."""
+
     status: ComponentStatus
     response_time_ms: float
     message: Optional[str] = None
@@ -37,14 +39,15 @@ class ComponentHealth:
 @dataclass
 class HealthCheckResult:
     """Overall health check result."""
+
     status: ComponentStatus
     timestamp: datetime
     components: Dict[str, ComponentHealth]
-    
+
     def is_healthy(self) -> bool:
         """Check if service is healthy (all components healthy)."""
         return self.status == ComponentStatus.HEALTHY
-    
+
     def is_ready(self) -> bool:
         """Check if service is ready (all critical components healthy)."""
         # For readiness, database is critical
@@ -53,25 +56,22 @@ class HealthCheckResult:
             if db_status == ComponentStatus.UNHEALTHY:
                 return False
         return True
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON response."""
         return {
             "status": self.status.value,
             "timestamp": self.timestamp.isoformat(),
-            "components": {
-                name: component.to_dict()
-                for name, component in self.components.items()
-            },
+            "components": {name: component.to_dict() for name, component in self.components.items()},
         }
 
 
 class HealthCheckService:
     """Service for checking health of application and dependencies."""
-    
+
     def __init__(self, db_session_factory, storage_adapter, cache_client=None):
         """Initialize health check service.
-        
+
         Args:
             db_session_factory: Database session factory
             storage_adapter: Storage adapter for cloud storage
@@ -80,19 +80,19 @@ class HealthCheckService:
         self.db_session_factory = db_session_factory
         self.storage_adapter = storage_adapter
         self.cache_client = cache_client
-    
+
     async def check_liveness(self) -> HealthCheckResult:
         """Check liveness probe (basic availability).
-        
+
         Checks:
         - Application is running
         - Service is responsive
-        
+
         Returns:
             HealthCheckResult with overall status
         """
         components: Dict[str, ComponentHealth] = {}
-        
+
         # Basic availability check
         try:
             start = datetime.utcnow()
@@ -112,57 +112,57 @@ class HealthCheckService:
                 message=f"Service check failed: {str(e)}",
                 last_check=datetime.utcnow(),
             )
-        
+
         # Determine overall status
         overall_status = ComponentStatus.HEALTHY
         if any(c.status == ComponentStatus.UNHEALTHY for c in components.values()):
             overall_status = ComponentStatus.UNHEALTHY
-        
+
         return HealthCheckResult(
             status=overall_status,
             timestamp=datetime.utcnow(),
             components=components,
         )
-    
+
     async def check_readiness(self) -> HealthCheckResult:
         """Check readiness probe (dependencies available).
-        
+
         Checks:
         - Database connectivity
         - Storage access
         - Cache availability (if configured)
-        
+
         Returns:
             HealthCheckResult with component statuses
         """
         components: Dict[str, ComponentHealth] = {}
-        
+
         # Check database
         db_component = await self._check_database()
         components["database"] = db_component
-        
+
         # Check storage
         storage_component = await self._check_storage()
         components["storage"] = storage_component
-        
+
         # Check cache if available
         if self.cache_client:
             cache_component = await self._check_cache()
             components["cache"] = cache_component
-        
+
         # Determine overall status
         overall_status = ComponentStatus.HEALTHY
         if any(c.status == ComponentStatus.UNHEALTHY for c in components.values()):
             overall_status = ComponentStatus.UNHEALTHY
         elif any(c.status == ComponentStatus.DEGRADED for c in components.values()):
             overall_status = ComponentStatus.DEGRADED
-        
+
         return HealthCheckResult(
             status=overall_status,
             timestamp=datetime.utcnow(),
             components=components,
         )
-    
+
     async def _check_database(self) -> ComponentHealth:
         """Check database connectivity."""
         try:
@@ -171,7 +171,7 @@ class HealthCheckService:
                 # Simple query to verify connection
                 await session.execute("SELECT 1")
             elapsed_ms = (datetime.utcnow() - start).total_seconds() * 1000
-            
+
             return ComponentHealth(
                 status=ComponentStatus.HEALTHY,
                 response_time_ms=elapsed_ms,
@@ -186,7 +186,7 @@ class HealthCheckService:
                 message=f"Database check failed: {str(e)}",
                 last_check=datetime.utcnow(),
             )
-    
+
     async def _check_storage(self) -> ComponentHealth:
         """Check storage (cloud provider) connectivity."""
         try:
@@ -199,11 +199,11 @@ class HealthCheckService:
                     message="Storage adapter not configured",
                     last_check=datetime.utcnow(),
                 )
-            
+
             # Try to get storage status (this varies by provider)
             # For now, just verify the adapter exists
             elapsed_ms = (datetime.utcnow() - start).total_seconds() * 1000
-            
+
             return ComponentHealth(
                 status=ComponentStatus.HEALTHY,
                 response_time_ms=elapsed_ms,
@@ -218,7 +218,7 @@ class HealthCheckService:
                 message=f"Storage check failed: {str(e)}",
                 last_check=datetime.utcnow(),
             )
-    
+
     async def _check_cache(self) -> ComponentHealth:
         """Check cache (Redis, etc.) connectivity."""
         try:
@@ -230,11 +230,11 @@ class HealthCheckService:
                     message="Cache client not available",
                     last_check=datetime.utcnow(),
                 )
-            
+
             # Verify cache is accessible
             # Implementation varies by cache type
             elapsed_ms = (datetime.utcnow() - start).total_seconds() * 1000
-            
+
             return ComponentHealth(
                 status=ComponentStatus.HEALTHY,
                 response_time_ms=elapsed_ms,

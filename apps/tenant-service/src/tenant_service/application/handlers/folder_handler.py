@@ -7,10 +7,6 @@ from sqlmodel import Session
 
 from tenant_service.domain.services.folder_service import FolderService
 from tenant_service.infrastructure.models.folder import FolderCreate, FolderUpdate, FolderMove
-from tenant_service.infrastructure.repositories.compliance_audit_repository import (
-    ComplianceAuditRepository,
-)
-from tenant_service.infrastructure.repositories.folder_repository import FolderRepository
 
 logger = logging.getLogger(__name__)
 
@@ -27,9 +23,7 @@ class CreateFolderCommand:
 class UpdateFolderCommand:
     """Command to update folder."""
 
-    def __init__(
-        self, user_tenant_id: UUID, user_id: UUID, folder_id: UUID, data: FolderUpdate
-    ):
+    def __init__(self, user_tenant_id: UUID, user_id: UUID, folder_id: UUID, data: FolderUpdate):
         self.user_tenant_id = user_tenant_id
         self.user_id = user_id
         self.folder_id = folder_id
@@ -39,9 +33,7 @@ class UpdateFolderCommand:
 class MoveFolderCommand:
     """Command to move folder."""
 
-    def __init__(
-        self, user_tenant_id: UUID, user_id: UUID, folder_id: UUID, data: FolderMove
-    ):
+    def __init__(self, user_tenant_id: UUID, user_id: UUID, folder_id: UUID, data: FolderMove):
         self.user_tenant_id = user_tenant_id
         self.user_id = user_id
         self.folder_id = folder_id
@@ -56,9 +48,7 @@ class CreateFolderHandler:
 
     def handle(self, db: Session, command: CreateFolderCommand):
         """Execute create folder command."""
-        logger.info(
-            f"Creating folder '{command.data.name}' for tenant {command.user_tenant_id}"
-        )
+        logger.info(f"Creating folder '{command.data.name}' for tenant {command.user_tenant_id}")
         folder = self.service.create_folder(
             db=db,
             user_tenant_id=command.user_tenant_id,
@@ -97,9 +87,7 @@ class MoveFolderHandler:
 
     def handle(self, db: Session, command: MoveFolderCommand):
         """Execute move folder command."""
-        logger.info(
-            f"Moving folder {command.folder_id} to parent {command.data.new_parent_id}"
-        )
+        logger.info(f"Moving folder {command.folder_id} to parent {command.data.new_parent_id}")
         folder = self.service.move_folder(
             db=db,
             user_tenant_id=command.user_tenant_id,

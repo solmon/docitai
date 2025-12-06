@@ -13,4 +13,3 @@ router = APIRouter(
 
 # Metrics endpoint is now provided by fastapi-core's create_app()
 # at /metrics endpoint. This module is deprecated.
-

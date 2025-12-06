@@ -1,6 +1,5 @@
 """Folder domain service with path logic and hierarchy management."""
 
-from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
@@ -98,9 +97,7 @@ class FolderService:
             "is_archived": folder.is_archived,
             "child_count": folder.child_count,
             "depth": folder.depth,
-            "children": [
-                self.get_folder_tree(db, user_tenant_id, child.id) for child in children
-            ],
+            "children": [self.get_folder_tree(db, user_tenant_id, child.id) for child in children],
         }
         return tree
 
@@ -114,7 +111,7 @@ class FolderService:
     ) -> Folder:
         """Update folder fields."""
         old_folder = self.get_folder(db, user_tenant_id, folder_id)
-        
+
         update_dict = data.model_dump(exclude_unset=True)
         if not update_dict:
             return old_folder
@@ -153,13 +150,11 @@ class FolderService:
                 raise ValidationError("Cannot move folder to itself")
 
             new_parent = self.folder_repo.get_by_id(db, user_tenant_id, new_parent_id)
-            
+
             # Check if new parent is descendant of current folder
             descendants = self.folder_repo.list_all_descendants(db, user_tenant_id, folder_id)
             if any(d.id == new_parent_id for d in descendants):
-                raise ValidationError(
-                    "Cannot move folder to its own descendant (circular reference)"
-                )
+                raise ValidationError("Cannot move folder to its own descendant (circular reference)")
 
             new_path = f"{new_parent.path}/{folder.name}"
         else:
@@ -170,7 +165,7 @@ class FolderService:
             raise ValidationError(f"Folder path '{new_path}' already exists")
 
         old_parent_id = folder.parent_id
-        
+
         # Update folder
         folder = self.folder_repo.update(
             db,
@@ -260,13 +255,10 @@ class FolderService:
         folder_id: UUID,
     ) -> None:
         """Restore deleted folder and descendants."""
-        statement = (
-            f"UPDATE folders SET deleted_at = NULL "
-            f"WHERE tenant_id = '{user_tenant_id}' "
-            f"AND id = '{folder_id}' AND deleted_at IS NOT NULL"
-        )
         # Note: Use raw SQL for restoration or implement differently
-        # This is a simplified example
+        # This is a simplified example - actual DB operation would use:
+        # UPDATE folders SET deleted_at = NULL WHERE tenant_id = user_tenant_id
+        # AND id = folder_id AND deleted_at IS NOT NULL
 
         self.audit_repo.log_action(
             db=db,
@@ -278,14 +270,10 @@ class FolderService:
             reason="Folder restored",
         )
 
-    def get_breadcrumb(
-        self, db: Session, user_tenant_id: UUID, folder_id: UUID
-    ) -> list[dict]:
+    def get_breadcrumb(self, db: Session, user_tenant_id: UUID, folder_id: UUID) -> list[dict]:
         """Get breadcrumb path for navigation."""
         folder = self.get_folder(db, user_tenant_id, folder_id)
-        breadcrumb = [
-            {"id": str(folder.id), "name": folder.name, "path": folder.path}
-        ]
+        breadcrumb = [{"id": str(folder.id), "name": folder.name, "path": folder.path}]
 
         parent_id = folder.parent_id
         while parent_id:
@@ -303,12 +291,11 @@ class FolderService:
     ) -> None:
         """Update paths of all descendants after parent moves."""
         children = self.folder_repo.list_by_parent(db, user_tenant_id, parent_id, include_archived=True)
-        
+
         for child in children:
-            old_path = child.path
             new_path = f"{new_parent_path}/{child.name}"
-            
+
             self.folder_repo.update(db, user_tenant_id, child.id, path=new_path)
-            
+
             # Recursively update descendants
             self._update_descendants_paths(db, user_tenant_id, child.id, new_path)

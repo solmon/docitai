@@ -147,9 +147,7 @@ class ComplianceService:
             }
 
         # CSV format
-        csv_rows = [
-            "id,action_type,resource_type,resource_id,changed_by,reason,status,created_at"
-        ]
+        csv_rows = ["id,action_type,resource_type,resource_id,changed_by,reason,status,created_at"]
         for entry in audit_entries:
             csv_rows.append(
                 f"{entry.id},{entry.action_type.value},{entry.resource_type},"

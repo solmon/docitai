@@ -4,7 +4,10 @@ import logging
 from typing import Optional
 from uuid import uuid4
 
-from tenant_service.exceptions import ValidationError
+from tenant_service.domain.validators import (
+    validate_email,
+    validate_subscription_plan,
+)
 from tenant_service.infrastructure.models.tenant import Tenant
 from tenant_service.infrastructure.repositories.tenant_repository import TenantRepository
 
@@ -63,12 +66,12 @@ class TenantService:
         Raises:
             ValidationError: If validation fails
         """
-        # Validate subscription plan
-        valid_plans = ["starter", "professional", "enterprise"]
-        if subscription_plan not in valid_plans:
-            raise ValidationError(
-                f"Invalid subscription plan: {subscription_plan}", details={"valid_plans": valid_plans}
-            )
+        # Validate using centralized validators (raises on invalid input)
+        validate_subscription_plan(subscription_plan)
+
+        # Validate email if provided
+        if admin_email:
+            validate_email(admin_email, "admin_email")
 
         # Generate tenant ID
         tenant_id = str(uuid4())
@@ -141,11 +144,8 @@ class TenantService:
         """
         # Validate subscription plan if being updated
         if "subscription_plan" in updates and updates["subscription_plan"]:
-            valid_plans = ["starter", "professional", "enterprise"]
-            if updates["subscription_plan"] not in valid_plans:
-                raise ValidationError(
-                    f"Invalid subscription plan: {updates['subscription_plan']}", details={"valid_plans": valid_plans}
-                )
+            validated_plan = validate_subscription_plan(updates["subscription_plan"])
+            updates["subscription_plan"] = validated_plan.value
 
         return await self.repository.update(tenant_id, user_tenant_id, **updates)
 

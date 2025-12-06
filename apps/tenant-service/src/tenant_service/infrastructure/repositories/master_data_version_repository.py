@@ -23,17 +23,15 @@ class MasterDataVersionRepository:
         version: MasterDataVersion,
     ) -> MasterDataVersion:
         """Record a new version (append-only)
-        
+
         Args:
             version: MasterDataVersion to record
-            
+
         Returns:
             Recorded version with ID
         """
         # Calculate version number
-        current_versions = await self.count_entity_versions(
-            version.entity_id, version.tenant_id
-        )
+        current_versions = await self.count_entity_versions(version.entity_id, version.tenant_id)
         version.version_number = current_versions + 1
 
         self.db.add(version)
@@ -48,12 +46,12 @@ class MasterDataVersionRepository:
         tenant_id: UUID,
     ) -> Optional[MasterDataVersion]:
         """Get specific version of entity
-        
+
         Args:
             entity_id: Entity ID
             version_number: Version number to retrieve
             tenant_id: Tenant ID
-            
+
         Returns:
             Specific version or None
         """
@@ -73,11 +71,11 @@ class MasterDataVersionRepository:
         tenant_id: UUID,
     ) -> list[MasterDataVersion]:
         """Get all versions for entity (sorted by version number)
-        
+
         Args:
             entity_id: Entity ID
             tenant_id: Tenant ID
-            
+
         Returns:
             List of all versions in order
         """
@@ -100,11 +98,11 @@ class MasterDataVersionRepository:
         tenant_id: UUID,
     ) -> int:
         """Count total versions for entity
-        
+
         Args:
             entity_id: Entity ID
             tenant_id: Tenant ID
-            
+
         Returns:
             Number of versions
         """
@@ -123,11 +121,11 @@ class MasterDataVersionRepository:
         tenant_id: UUID,
     ) -> Optional[MasterDataVersion]:
         """Get latest version of entity
-        
+
         Args:
             entity_id: Entity ID
             tenant_id: Tenant ID
-            
+
         Returns:
             Latest version or None
         """
@@ -153,13 +151,13 @@ class MasterDataVersionRepository:
         limit: int = 50,
     ) -> list[MasterDataVersion]:
         """Get versions for all entities of a type
-        
+
         Args:
             entity_type: Entity type (category/type)
             tenant_id: Tenant ID
             skip: Pagination offset
             limit: Pagination limit
-            
+
         Returns:
             List of versions
         """
@@ -186,13 +184,13 @@ class MasterDataVersionRepository:
         limit: int = 50,
     ) -> list[MasterDataVersion]:
         """Get all changes made by a specific user
-        
+
         Args:
             changed_by: User ID
             tenant_id: Tenant ID
             skip: Pagination offset
             limit: Pagination limit
-            
+
         Returns:
             List of versions
         """
@@ -219,13 +217,13 @@ class MasterDataVersionRepository:
         limit: int = 50,
     ) -> list[MasterDataVersion]:
         """Get all versions since a specific timestamp
-        
+
         Args:
             tenant_id: Tenant ID
             since_timestamp: ISO 8601 timestamp
             skip: Pagination offset
             limit: Pagination limit
-            
+
         Returns:
             List of versions
         """

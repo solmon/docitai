@@ -1,0 +1,78 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tenant-service
+  namespace: docitai
+  labels:
+    app.kubernetes.io/name: tenant-service
+  annotations:
+    # Nginx Ingress Controller annotations
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # Rate limiting
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+    nginx.ingress.kubernetes.io/limit-connections: "50"
+    # CORS (if needed at ingress level)
+    # nginx.ingress.kubernetes.io/enable-cors: "true"
+    # nginx.ingress.kubernetes.io/cors-allow-origin: "https://app.docitai.com"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - api.docitai.com
+      secretName: docitai-tls
+  rules:
+    - host: api.docitai.com
+      http:
+        paths:
+          - path: /api/v1/tenants
+            pathType: Prefix
+            backend:
+              service:
+                name: tenant-service
+                port:
+                  name: http
+          - path: /api/v1/storage
+            pathType: Prefix
+            backend:
+              service:
+                name: tenant-service
+                port:
+                  name: http
+          - path: /api/v1/folders
+            pathType: Prefix
+            backend:
+              service:
+                name: tenant-service
+                port:
+                  name: http
+          - path: /api/v1/policies
+            pathType: Prefix
+            backend:
+              service:
+                name: tenant-service
+                port:
+                  name: http
+          - path: /api/v1/master-data
+            pathType: Prefix
+            backend:
+              service:
+                name: tenant-service
+                port:
+                  name: http
+          - path: /health
+            pathType: Exact
+            backend:
+              service:
+                name: tenant-service
+                port:
+                  name: http
+          - path: /metrics
+            pathType: Exact
+            backend:
+              service:
+                name: tenant-service
+                port:
+                  name: http

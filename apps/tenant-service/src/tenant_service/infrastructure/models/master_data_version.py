@@ -7,14 +7,14 @@ from datetime import datetime
 from typing import Any, Optional
 from uuid import UUID, uuid4
 
-from sqlmodel import Column, JSON, Field, String, SQLModel
+from sqlmodel import Column, JSON, Field, SQLModel
 
 from database_core import TenantAwareBase
 
 
 class MasterDataVersion(TenantAwareBase, table=True):
     """Master Data Version - Immutable Audit Trail
-    
+
     Records all changes to master data (categories, types) for:
     - Complete audit trail
     - Version history tracking

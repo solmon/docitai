@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tenant-service-config
+  namespace: docitai
+  labels:
+    app.kubernetes.io/name: tenant-service
+    app.kubernetes.io/component: api
+data:
+  # Application settings
+  APP_ENVIRONMENT: "production"
+  APP_DEBUG: "false"
+  APP_LOG_LEVEL: "INFO"
+  APP_HOST: "0.0.0.0"
+  APP_PORT: "8000"
+  APP_WORKERS: "4"
+
+  # Database settings (non-sensitive)
+  DB_DATABASE_TYPE: "postgresql"
+  DB_ECHO_SQL: "false"
+
+  # OpenTelemetry tracing (optional)
+  OTEL_ENABLED: "false"
+  OTEL_SERVICE_NAME: "tenant-service"
+  OTEL_EXPORTER_ENDPOINT: "http://jaeger-collector.observability:4317"
+
+  # CORS settings
+  CORS_ORIGINS: "https://app.docitai.com,https://admin.docitai.com"
+
+  # Rate limiting
+  RATE_LIMIT_ENABLED: "true"
+  RATE_LIMIT_REQUESTS_PER_MINUTE: "100"

@@ -9,7 +9,6 @@ from uuid import UUID
 from sqlmodel import Session
 
 from tenant_service.domain.value_objects.custom_attribute import (
-    AttributeValidationError,
     CustomAttribute,
 )
 from tenant_service.infrastructure.models.document_category import DocumentCategory
@@ -48,7 +47,7 @@ class MasterDataService:
         sort_order: int = 0,
     ) -> DocumentCategory:
         """Create a new document category
-        
+
         Args:
             tenant_id: Tenant ID
             name: Category name
@@ -57,10 +56,10 @@ class MasterDataService:
             icon: Optional icon name
             parent_category_id: Optional parent category (hierarchy)
             sort_order: Sort order for UI
-            
+
         Returns:
             Created category
-            
+
         Raises:
             ValueError: If category name exists or parent doesn't exist
         """
@@ -104,7 +103,7 @@ class MasterDataService:
         is_active: Optional[bool] = None,
     ) -> DocumentCategory:
         """Update an existing category
-        
+
         Args:
             category_id: Category ID
             tenant_id: Tenant ID
@@ -115,10 +114,10 @@ class MasterDataService:
             parent_category_id: New parent (optional)
             sort_order: New sort order (optional)
             is_active: Active status (optional)
-            
+
         Returns:
             Updated category
-            
+
         Raises:
             ValueError: If category not found or update invalid
         """
@@ -167,46 +166,42 @@ class MasterDataService:
 
     async def delete_category(self, category_id: UUID, tenant_id: UUID) -> bool:
         """Delete a category (soft delete)
-        
+
         Args:
             category_id: Category ID
             tenant_id: Tenant ID
-            
+
         Returns:
             True if deleted, False if not found
-            
+
         Raises:
             ValueError: If category has active document types
         """
         # Check for active document types in this category
         types_count = await self.type_repo.count_by_category(category_id, tenant_id)
         if types_count > 0:
-            raise ValueError(
-                f"Cannot delete category with {types_count} document types"
-            )
+            raise ValueError(f"Cannot delete category with {types_count} document types")
 
         return await self.category_repo.soft_delete(category_id, tenant_id)
 
     async def restore_category(self, category_id: UUID, tenant_id: UUID) -> bool:
         """Restore a soft-deleted category
-        
+
         Args:
             category_id: Category ID
             tenant_id: Tenant ID
-            
+
         Returns:
             True if restored, False if not found
         """
         return await self.category_repo.restore(category_id, tenant_id)
 
-    async def get_category_hierarchy(
-        self, tenant_id: UUID
-    ) -> dict[str, Any]:
+    async def get_category_hierarchy(self, tenant_id: UUID) -> dict[str, Any]:
         """Get complete category hierarchy as tree
-        
+
         Args:
             tenant_id: Tenant ID
-            
+
         Returns:
             Tree structure with categories
         """
@@ -214,11 +209,7 @@ class MasterDataService:
         root_categories = [c for c in all_categories if c.parent_category_id is None]
 
         def build_tree(category):
-            children = [
-                build_tree(c)
-                for c in all_categories
-                if c.parent_category_id == category.id
-            ]
+            children = [build_tree(c) for c in all_categories if c.parent_category_id == category.id]
             return {
                 "id": str(category.id),
                 "name": category.name,
@@ -228,9 +219,7 @@ class MasterDataService:
                 "children": children,
             }
 
-        return {
-            "categories": [build_tree(c) for c in root_categories]
-        }
+        return {"categories": [build_tree(c) for c in root_categories]}
 
     # ============= Document Type Operations =============
 
@@ -246,7 +235,7 @@ class MasterDataService:
         custom_attributes: Optional[list[dict[str, Any]]] = None,
     ) -> DocumentType:
         """Create a new document type
-        
+
         Args:
             tenant_id: Tenant ID
             category_id: Category ID
@@ -256,10 +245,10 @@ class MasterDataService:
             max_file_size: Max file size in bytes
             retention_days: Retention period (days)
             custom_attributes: Custom attribute definitions
-            
+
         Returns:
             Created document type
-            
+
         Raises:
             ValueError: If validation fails
         """
@@ -306,7 +295,7 @@ class MasterDataService:
         is_active: Optional[bool] = None,
     ) -> DocumentType:
         """Update a document type
-        
+
         Args:
             type_id: Type ID
             tenant_id: Tenant ID
@@ -318,10 +307,10 @@ class MasterDataService:
             retention_days: New retention (optional)
             custom_attributes: New attributes (optional)
             is_active: Active status (optional)
-            
+
         Returns:
             Updated document type
-            
+
         Raises:
             ValueError: If type not found or update invalid
         """
@@ -365,11 +354,11 @@ class MasterDataService:
 
     async def delete_document_type(self, type_id: UUID, tenant_id: UUID) -> bool:
         """Delete a document type (soft delete)
-        
+
         Args:
             type_id: Type ID
             tenant_id: Tenant ID
-            
+
         Returns:
             True if deleted, False if not found
         """
@@ -377,11 +366,11 @@ class MasterDataService:
 
     async def restore_document_type(self, type_id: UUID, tenant_id: UUID) -> bool:
         """Restore a soft-deleted document type
-        
+
         Args:
             type_id: Type ID
             tenant_id: Tenant ID
-            
+
         Returns:
             True if restored, False if not found
         """
@@ -389,17 +378,15 @@ class MasterDataService:
 
     # ============= Attribute Validation =============
 
-    async def _validate_attribute_schema(
-        self, attributes_data: list[dict[str, Any]]
-    ) -> list[dict[str, Any]]:
+    async def _validate_attribute_schema(self, attributes_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Validate custom attributes schema
-        
+
         Args:
             attributes_data: List of attribute dictionaries
-            
+
         Returns:
             Validated and normalized attributes
-            
+
         Raises:
             ValueError: If schema is invalid
         """
@@ -424,15 +411,13 @@ class MasterDataService:
 
         return attributes
 
-    async def validate_document_data(
-        self, doc_type: DocumentType, data: dict[str, Any]
-    ) -> list[str]:
+    async def validate_document_data(self, doc_type: DocumentType, data: dict[str, Any]) -> list[str]:
         """Validate document data against type schema
-        
+
         Args:
             doc_type: Document type
             data: Document data to validate
-            
+
         Returns:
             List of validation errors (empty if valid)
         """
@@ -448,14 +433,12 @@ class MasterDataService:
 
         return errors
 
-    async def get_attribute_constraints(
-        self, attribute_dict: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def get_attribute_constraints(self, attribute_dict: dict[str, Any]) -> dict[str, Any]:
         """Get JSON schema constraints for attribute
-        
+
         Args:
             attribute_dict: Attribute dictionary
-            
+
         Returns:
             JSON schema representation
         """
@@ -493,7 +476,7 @@ class MasterDataService:
         change_reason: Optional[str] = None,
     ) -> MasterDataVersion:
         """Record a version change for audit trail
-        
+
         Args:
             entity_type: Type of entity (category/type)
             entity_id: Entity ID
@@ -504,7 +487,7 @@ class MasterDataService:
             previous_values: Previous values (for updates)
             changed_by: User who made change
             change_reason: Reason for change
-            
+
         Returns:
             Recorded version
         """
@@ -530,30 +513,26 @@ class MasterDataService:
 
         return await self.version_repo.record_version(version)
 
-    async def get_version_history(
-        self, entity_id: UUID, tenant_id: UUID
-    ) -> list[MasterDataVersion]:
+    async def get_version_history(self, entity_id: UUID, tenant_id: UUID) -> list[MasterDataVersion]:
         """Get complete version history for entity
-        
+
         Args:
             entity_id: Entity ID
             tenant_id: Tenant ID
-            
+
         Returns:
             List of all versions
         """
         return await self.version_repo.get_version_history(entity_id, tenant_id)
 
-    async def get_version(
-        self, entity_id: UUID, version_number: int, tenant_id: UUID
-    ) -> Optional[MasterDataVersion]:
+    async def get_version(self, entity_id: UUID, version_number: int, tenant_id: UUID) -> Optional[MasterDataVersion]:
         """Get specific version
-        
+
         Args:
             entity_id: Entity ID
             version_number: Version number
             tenant_id: Tenant ID
-            
+
         Returns:
             Specific version or None
         """
@@ -563,16 +542,16 @@ class MasterDataService:
         self, entity_id: UUID, version_number: int, tenant_id: UUID, user_id: Optional[str] = None
     ) -> dict[str, Any]:
         """Rollback entity to previous version
-        
+
         Args:
             entity_id: Entity ID
             version_number: Version to restore to
             tenant_id: Tenant ID
             user_id: User performing rollback
-            
+
         Returns:
             Rolled back entity as dict
-            
+
         Raises:
             ValueError: If version not found
         """

@@ -4,18 +4,23 @@ Represents specific document types with custom attributes and constraints.
 Templates for documents that can be classified under categories.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 from uuid import UUID, uuid4
 
-from sqlmodel import Column, JSON, Field, String, SQLModel
+from sqlmodel import Column, JSON, Field, SQLModel
 
 from database_core import TenantAwareBase
+
+if TYPE_CHECKING:
+    from tenant_service.infrastructure.models.document_category import DocumentCategoryResponse
 
 
 class DocumentType(TenantAwareBase, table=True):
     """Document Type Entity
-    
+
     Template for a specific document type with custom attributes,
     file constraints, and retention settings.
     """

@@ -48,9 +48,7 @@ async def get_resource_audit_trail(
         return entries
     except Exception as e:
         logger.error(f"Error fetching resource audit trail: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
 
 @router.get("", response_model=list[ComplianceAuditTrailResponse])
@@ -93,9 +91,7 @@ async def get_tenant_audit_trail(
         return entries
     except Exception as e:
         logger.error(f"Error fetching audit trail: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
 
 @router.get("/export", response_model=dict)
@@ -116,6 +112,4 @@ async def export_audit_report(
         return report
     except Exception as e:
         logger.error(f"Error exporting audit report: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")

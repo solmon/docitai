@@ -24,7 +24,7 @@ class AttributeType(str, Enum):
 
 class CustomAttribute(SQLModel):
     """Immutable custom attribute definition
-    
+
     Value object representing a custom attribute that can be attached
     to document types for capturing additional metadata.
     """
@@ -82,7 +82,7 @@ class CustomAttribute(SQLModel):
 
     def validate_value(self, value: Any) -> tuple[bool, Optional[str]]:
         """Validate a value against this attribute definition
-        
+
         Returns:
             Tuple of (is_valid, error_message)
         """
@@ -107,7 +107,7 @@ class CustomAttribute(SQLModel):
                 num = float(value) if not isinstance(value, (int, float)) else value
             except (ValueError, TypeError):
                 return False, f"{self.name} must be numeric"
-            
+
             min_val = self.validation_rules.get("min")
             max_val = self.validation_rules.get("max")
             if min_val is not None and num < min_val:
@@ -123,6 +123,7 @@ class CustomAttribute(SQLModel):
             if isinstance(value, str):
                 try:
                     from datetime import datetime
+
                     datetime.strptime(value, "%Y-%m-%d")
                 except ValueError:
                     return False, f"{self.name} must be YYYY-MM-DD format"
@@ -133,6 +134,7 @@ class CustomAttribute(SQLModel):
             if isinstance(value, str):
                 try:
                     from datetime import datetime
+
                     datetime.fromisoformat(value.replace("Z", "+00:00"))
                 except ValueError:
                     return False, f"{self.name} must be ISO 8601 format"
@@ -182,9 +184,7 @@ class CustomAttribute(SQLModel):
         if not isinstance(other, CustomAttribute):
             return False
         return (
-            self.name == other.name
-            and self.attribute_type == other.attribute_type
-            and self.required == other.required
+            self.name == other.name and self.attribute_type == other.attribute_type and self.required == other.required
         )
 
 

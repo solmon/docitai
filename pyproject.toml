@@ -22,7 +22,7 @@ dev = [
     "pydantic>=2.10.4", # required by pydantic.mypy plugin
     "pylint>=3.3.3",
     "pytest>=8.3.4",
-    "ruff>=0.8.4"       
+    "ruff>=0.8.4"
 ]
 
 mssql = [
@@ -40,7 +40,7 @@ where = ["libs", "apps"]
 
 [tool.uv]
 package = false
-allow-insecure-host = ["localhost", "pypi.org", "pypi.python.org", "files.pythonhosted.org", "github.com"]
+# allow-insecure-host = ["localhost", "pypi.org", "pypi.python.org", "files.pythonhosted.org", "github.com"]
 
 [tool.uv.workspace]
 members = ["libs/*", "apps/*"]

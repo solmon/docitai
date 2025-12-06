@@ -45,9 +45,7 @@ class ExecuteRetentionPolicyHandler:
 
     def handle(self, db: Session, command: ExecuteRetentionPolicyCommand):
         """Execute retention policy command."""
-        logger.info(
-            f"Executing policy {command.policy_id} for tenant {command.user_tenant_id}"
-        )
+        logger.info(f"Executing policy {command.policy_id} for tenant {command.user_tenant_id}")
         result = self.service.execute_policy(
             db=db,
             user_tenant_id=command.user_tenant_id,

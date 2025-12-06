@@ -17,7 +17,7 @@ This directory contains Docker Compose configurations for local development and 
 - **Port**: `1433`
 - **SA Password**: `DocitaiDev@123`
 - **Edition**: Developer
-- **Volumes**: 
+- **Volumes**:
   - `mssql_data` - Database files
   - `mssql_log` - Transaction logs
   - `mssql_backup` - Backup files
@@ -209,6 +209,50 @@ docker-compose -f infra/docker-compose.yml up -d mssql
    ```bash
    docker-compose -f infra/docker-compose.yml down
    ```
+
+## Tenant Service Deployment
+
+### Using Docker Compose
+
+```bash
+# Start tenant service with PostgreSQL (production build)
+docker compose -f infra/docker-compose.yml up tenant-service -d
+
+# Start in development mode with hot reload
+docker compose -f infra/docker-compose.yml --profile dev up tenant-service-dev -d
+
+# Enable distributed tracing with Jaeger
+docker compose -f infra/docker-compose.yml --profile tracing up tenant-service jaeger -d
+
+# View service logs
+docker compose -f infra/docker-compose.yml logs -f tenant-service
+```
+
+### Service Profiles
+
+| Profile | Services | Description |
+|---------|----------|-------------|
+| (default) | postgres, mssql, tenant-service | Core services |
+| `dev` | tenant-service-dev | Development with hot reload (port 8001) |
+| `admin` | pgadmin | Database administration UI |
+| `tracing` | jaeger | Distributed tracing |
+
+### Kubernetes Deployment
+
+See `k8s/` directory for Kubernetes manifests:
+
+```bash
+cd infra/k8s
+
+# Update secrets before deployment
+kubectl apply -f namespace.yaml
+kubectl apply -f secret.yaml    # ⚠️ Update with real credentials
+kubectl apply -f configmap.yaml
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+kubectl apply -f hpa.yaml
+kubectl apply -f ingress.yaml
+```
 
 ## Production Notes
 
